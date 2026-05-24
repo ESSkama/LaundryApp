@@ -251,13 +251,13 @@
                 <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "Reports" ? "active" : "")" href="/Admin/Reports">
                     <i class="fas fa-chart-bar"></i> <span>Reports</span>
                 </a>
-                <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "Logs" ? "active" : "")" href="/Admin/Logs">
+               @*  <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "Logs" ? "active" : "")" href="/Admin/Logs">
                     <i class="fas fa-history"></i> <span>Activity Logs</span>
-                </a>
-                <hr class="my-2" style="border-color: rgba(255,255,255,0.1);">
+                </a> *@
+                @* <hr class="my-2" style="border-color: rgba(255,255,255,0.1);">
                 <a class="nav-link" href="/">
                     <i class="fas fa-store"></i> <span>Website</span>
-                </a>
+                </a> *@
                 <a class="nav-link text-danger" href="#" onclick="document.getElementById('logoutForm').submit();">
                     <i class="fas fa-sign-out-alt"></i> <span>Logout</span>
                 </a>

@@ -178,15 +178,14 @@
                 <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "Profile" ? "active" : "")" href="/Driver/Profile">
         <i class="fas fa-user-cog"></i> <span>My Profile Settings</span>
     </a>
-                <!-- Expanded placeholder links for when your driver functionality grows -->
-                <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "History" ? "active" : "")" href="#" onclick="alert('Trip history logging is rolling out natively in Phase 2 optimization.')">
-                    <i class="fas fa-history"></i> <span>Completed Runs</span>
-                </a>
+                <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "CompletedDeliveries" ? "active" : "")" href="/Driver/CompletedDeliveries">
+        <i class="fas fa-user-cog"></i> <span>Completed Deliveries</span>
+    </a>
 
                 <hr class="my-3" style="border-color: rgba(255,255,255,0.1); margin: 0 20px;">
                 
                 <a class="nav-link text-danger mt-auto" href="#" onclick="document.getElementById('driverLogoutForm').submit();">
-                    <i class="fas fa-sign-out-alt"></i> <span>Go Off-Duty</span>
+                    <i class="fas fa-sign-out-alt"></i> <span>Log-Out</span>
                 </a>
             </nav>
         </div>

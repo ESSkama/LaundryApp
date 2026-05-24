@@ -114,7 +114,60 @@ namespace Laundry.Controllers
             TempData["Success"] = "Your driver profile and transit vehicle settings have been updated successfully!";
             return RedirectToAction(nameof(Profile));
         }
+        [HttpGet]
+        public async Task<IActionResult> CompletedDeliveries(string? search, string? filterService, string? filterTier, int page = 1)
+        {
+            var driverId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            const int pageSize = 10;
 
+            // 1. Filter orders handled by this driver that have reached final delivery states
+            var query = _context.Orders
+                .Include(o => o.User)
+                .Where(o => o.AssignedDriverId == driverId &&
+                            (o.Status == OrderStatus.Completed ||
+                             o.Status == OrderStatus.ReadyForPickup ||
+                             o.Status == OrderStatus.OutForDelivery ||
+                             o.Status == OrderStatus.Delivered))
+                .AsQueryable();
+
+            // 2. Search by order number or customer name
+            if (!string.IsNullOrWhiteSpace(search))
+                query = query.Where(o => o.OrderNumber.Contains(search) ||
+                                         (o.User != null && o.User.FullName.Contains(search)));
+
+            // 3. Filter by service type
+            if (!string.IsNullOrWhiteSpace(filterService))
+                query = query.Where(o => o.ServiceType == filterService);
+
+            // 4. Filter by package tier
+            if (!string.IsNullOrWhiteSpace(filterTier))
+                query = query.Where(o => o.PackageTier == filterTier);
+
+            // 5. Summary statistics (pre-pagination calculations)
+            var allFiltered = await query.ToListAsync();
+            ViewBag.TotalCycles = allFiltered.Count;
+            ViewBag.TotalKgProcessed = allFiltered.Sum(o => o.WeightKg);
+            ViewBag.ThisWeekCount = allFiltered.Count(o => o.OrderDate >= DateTime.Today.AddDays(-7));
+
+            // 6. Pagination metadata & tracking state
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = (int)Math.Ceiling(allFiltered.Count / (double)pageSize);
+            ViewBag.Search = search;
+            ViewBag.FilterService = filterService;
+            ViewBag.FilterTier = filterTier;
+
+            // 7. Context drop-down listings extracted from history records
+            ViewBag.ServiceTypes = allFiltered.Select(o => o.ServiceType).Distinct().OrderBy(s => s).ToList();
+            ViewBag.PackageTiers = allFiltered.Select(o => o.PackageTier).Distinct().OrderBy(t => t).ToList();
+
+            var paginated = allFiltered
+                .OrderByDescending(o => o.OrderDate)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            return View(paginated);
+        }
 
 
 

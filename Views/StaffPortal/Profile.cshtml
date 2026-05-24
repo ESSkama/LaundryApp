@@ -1,17 +1,15 @@
 ﻿@model Laundry.Models.User
 @{
     ViewData["Title"] = "Account Settings";
-    Layout = "~/Views/Shared/_DriverLayout.cshtml";
+    Layout = "~/Views/Shared/_StaffLayout.cshtml";
 
     // Split full name safely for individual input fields
-    var nameParts = (Model.FullName ?? "Courier Profile").Split(' ', 2);
+    var nameParts = (Model.FullName ?? "Staff Member").Split(' ', 2);
     var firstName = nameParts[0];
     var lastName = nameParts.Length > 1 ? nameParts[1] : "";
 
-    // Driver label display using their plate or ID fallback
-    var driverLabel = !string.IsNullOrWhiteSpace(Model.VehicleRegistrationPlate) 
-        ? Model.VehicleRegistrationPlate.ToUpper() 
-        : $"DRV-{Model.UserId:D3}";
+    // Derive station number from ID for a nice display label
+    var stationLabel = $"WS-{Model.UserId:D3}";
 }
 
 <div class="container-fluid px-0 py-2" style="max-width: 1000px;">
@@ -32,24 +30,24 @@
     }
 
     <div class="card border-0 bg-white rounded-4 shadow-sm overflow-hidden mb-5">
-        <form asp-controller="Driver" asp-action="UpdateProfile" method="post">
+        <form asp-controller="StaffPortal" asp-action="UpdateProfile" method="post">
             @Html.AntiForgeryToken()
 
-            @* ── Profile picture header ── *@
+            @* ── Profile picture header ──  *@
             <div class="p-4 border-bottom border-light">
                 <h3 class="fw-bold text-dark mb-4">Account</h3>
 
                 <div class="d-flex align-items-center gap-4 py-2">
                     <div class="position-relative">
-                        @* Avatar circle *@
+                        @* Avatar circle  *@
                         <div class="rounded-circle d-flex align-items-center justify-content-center border border-2 border-white shadow-sm"
                              style="width:80px;height:80px;background:linear-gradient(135deg,#3D5A80,#2A9D8F);overflow:hidden;">
-                            <i class="fas fa-truck text-white fa-2x"></i>
+                            <i class="fas fa-user-hard-hat text-white fa-2x mt-1"></i>
                         </div>
-                        @* Fleet Vehicle Badge *@
+                        @* Station badge  *@
                         <span class="position-absolute bottom-0 end-0 badge rounded-pill text-white fw-bold"
-                              style="font-size:0.55rem;background:#2A9D8F;padding:3px 6px;letter-spacing:0.5px;max-width:85px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
-                            @driverLabel
+                              style="font-size:0.58rem;background:#2A9D8F;padding:3px 6px;letter-spacing:0.5px;">
+                            @stationLabel
                         </span>
                     </div>
                     <div>
@@ -57,11 +55,11 @@
                         <div class="d-flex gap-2 mb-2">
                             <button type="button" class="btn btn-sm text-white px-3 rounded-3 shadow-sm"
                                     style="background-color:var(--teal);border:none;"
-                                    onclick="alert('Profile image uploading is integrated with central employee verification assets.')">
+                                    onclick="alert('Profile image uploading is linked to the central staff records system.')">
                                 <i class="fas fa-upload me-1 small"></i> Upload Image
                             </button>
                             <button type="button" class="btn btn-sm btn-outline-secondary px-3 rounded-3 bg-white"
-                                    onclick="alert('Resetting to asset default placeholder.')">
+                                    onclick="alert('Resetting to default staff placeholder.')">
                                 Remove
                             </button>
                         </div>
@@ -70,95 +68,95 @@
                 </div>
             </div>
 
-       
+            @* ── Editable fields ──  *@
             <div class="p-4 border-bottom border-light bg-white">
                 <div class="row g-4">
 
                     <div class="col-md-6">
                         <label class="form-label small fw-medium text-secondary mb-1">First Name</label>
                         <input type="text" name="firstName"
-                               class="form-control driver-profile-input py-2 px-3"
+                               class="form-control staff-profile-input py-2 px-3"
                                value="@firstName" required />
                     </div>
 
                     <div class="col-md-6">
                         <label class="form-label small fw-medium text-secondary mb-1">Last Name</label>
                         <input type="text" name="lastName"
-                               class="form-control driver-profile-input py-2 px-3"
+                               class="form-control staff-profile-input py-2 px-3"
                                value="@lastName" />
                     </div>
 
                     <div class="col-md-6">
                         <label class="form-label small fw-medium text-secondary mb-1">Mobile Phone Number</label>
                         <input type="tel" name="phoneNumber"
-                               class="form-control driver-profile-input py-2 px-3"
+                               class="form-control staff-profile-input py-2 px-3"
                                value="@Model.PhoneNumber" required />
                     </div>
 
                     <div class="col-md-6">
                         <label class="form-label small fw-medium text-secondary mb-1">Username Handle</label>
                         <input type="text" name="systemUsername"
-                               class="form-control driver-profile-input py-2 px-3 font-monospace"
+                               class="form-control staff-profile-input py-2 px-3 font-monospace"
                                value="@Model.SystemUsername"
-                               placeholder="e.g. driver.john" />
+                               placeholder="e.g. staff.jane" />
                     </div>
 
-                    @* Vehicle Registration Plate Layout matching premium layout design style *@
+                    @* Station ID — read-only info field  *@
                     <div class="col-md-6">
-                        <label class="form-label small fw-medium text-secondary mb-1">Vehicle Registration Plate</label>
+                        <label class="form-label small fw-medium text-secondary mb-1">Washing Station ID</label>
                         <div class="d-flex gap-2">
-                            <input type="text" name="vehicleRegistrationPlate"
-                                   class="form-control driver-profile-input py-2 px-3 text-uppercase fw-bold font-monospace flex-grow-1"
-                                   value="@Model.VehicleRegistrationPlate" placeholder="e.g. EC 123-456" />
+                            <input type="text"
+                                   class="form-control staff-profile-input py-2 px-3 font-monospace bg-light text-muted flex-grow-1"
+                                   value="@stationLabel" readonly style="cursor:not-allowed;" />
                             <span class="d-flex align-items-center px-3 rounded-3 border small fw-medium text-muted bg-white"
                                   style="font-size:0.8rem;white-space:nowrap;border-color:rgba(0,0,0,0.1)!important;">
-                                <i class="fas fa-id-card me-1 opacity-50"></i> Fleet ID
+                                <i class="fas fa-soap me-1 opacity-50"></i> Auto-assigned
                             </span>
                         </div>
-                        <small class="text-muted d-block mt-1" style="font-size:0.75rem;">Assigned transport registration plate validation number</small>
+                        <small class="text-muted d-block mt-1" style="font-size:0.75rem;">Your permanent washing station identifier</small>
                     </div>
 
-                    @* Email — read-only, admin changes only *@
+                    @* Email — read-only, admin changes only  *@
                     <div class="col-md-6">
                         <label class="form-label small fw-medium text-secondary mb-1">Email</label>
                         <div class="d-flex gap-2">
                             <input type="email"
-                                   class="form-control driver-profile-input py-2 px-3 bg-light text-muted flex-grow-1"
+                                   class="form-control staff-profile-input py-2 px-3 bg-light text-muted flex-grow-1"
                                    value="@Model.Email" readonly style="cursor:not-allowed;" />
                             <button type="button"
                                     class="btn btn-sm btn-outline-secondary px-3 rounded-3 bg-white border border-secondary border-opacity-20 small fw-medium"
                                     style="white-space:nowrap;font-size:0.82rem;"
-                                    onclick="alert('Corporate profile routing credentials must be adjusted via the administrative desk.')">
+                                    onclick="alert('Email changes must be processed through the admin office.')">
                                 Edit Email
                             </button>
                         </div>
-                        <small class="text-muted d-block mt-1" style="font-size:0.75rem;">Used to log in to your fleet account</small>
+                        <small class="text-muted d-block mt-1" style="font-size:0.75rem;">Used to log in to your staff account</small>
                     </div>
 
                 </div>
             </div>
 
-            @* ── Password section ── *@
+            @* ── Password section ──  *@
             <div class="p-4 border-bottom border-light bg-white">
                 <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
                     <div>
                         <h6 class="fw-bold text-dark mb-1">Password</h6>
                         <p class="text-muted small mb-0" style="font-size:0.8rem;">
-                            Log in with your password instead of using temporary login authorization access tokens. Contact an admin if you're locked out.
+                            Secure your account with a strong password. Contact an admin if you're locked out.
                         </p>
                     </div>
                     <div>
                         <button type="button"
                                 class="btn btn-sm btn-outline-secondary px-3 py-2 bg-white border border-secondary border-opacity-20 fw-semibold"
                                 style="font-size:0.8rem;border-radius:8px;"
-                                onclick="alert('A secure credential reset token link has been broadcasted to your recovery account window.')">
+                                onclick="alert('A password reset link will be sent to your registered email address.')">
                             Change Password
                         </button>
                     </div>
                 </div>
             </div>
 
-            @* ── Account info strip ── *@
+            @* ── Account info strip ──  *@
             <div class="p-4 border-bottom border-light bg-white">
                 <h6 class="fw-bold text-dark mb-3">Account Info</h6>
                 <div class="row g-3">
@@ -205,14 +203,15 @@
                 </div>
             </div>
 
+            @* ── Save / cancel footer ──  *@
             <div class="p-4 bg-light bg-opacity-40 d-flex justify-content-end align-items-center gap-2 border-top border-light">
-                <a href="/Driver/Index"
+                <a href="/StaffPortal/Index"
                    class="btn btn-sm btn-light border bg-white text-secondary fw-semibold px-4 py-2"
                    style="border-radius:10px;font-size:0.85rem;">
                     Cancel
                 </a>
                 <button type="submit"
-                        class="btn btn-sm text-white px-4 py-2 fw-semibold shadow-sm btn-save-driver"
+                        class="btn btn-sm text-white px-4 py-2 fw-semibold shadow-sm btn-save-staff"
                         style="background-color:var(--teal);border:none;border-radius:10px;font-size:0.85rem;">
                     Save Changes
                 </button>
@@ -223,7 +222,7 @@
 </div>
 
 <style>
-    .driver-profile-input {
+    .staff-profile-input {
         background-color: #ffffff !important;
         border: 1px solid rgba(0,0,0,0.08) !important;
         border-radius: 10px !important;
@@ -233,17 +232,17 @@
         transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
     }
 
-    .driver-profile-input:focus {
+    .staff-profile-input:focus {
         border-color: var(--indigo) !important;
         box-shadow: 0 0 0 3px rgba(61,90,128,0.12) !important;
         outline: none !important;
     }
 
-    .btn-save-driver {
+    .btn-save-staff {
         transition: all 0.2s ease-in-out !important;
     }
 
-    .btn-save-driver:hover {
+    .btn-save-staff:hover {
         background-color: var(--indigo-dark) !important;
         transform: translateY(-1px);
         box-shadow: 0 4px 12px rgba(61,90,128,0.25) !important;
