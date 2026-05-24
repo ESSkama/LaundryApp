@@ -1,0 +1,158 @@
+﻿@model List<Laundry.Models.Order>
+@{
+    ViewData["Title"] = "Washing Station Command Console";
+    // Leverages the clean corporate sidebar framework layout natively
+    Layout = "~/Views/Shared/_AdminLayout.cshtml"; 
+
+    var activeWashCount = ViewBag.ActiveWashingCount ?? 0;
+    var completedCount = ViewBag.CompletedCount ?? 0;
+}
+
+<div class="admin-dashboard p-1">
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success border-0 shadow-sm rounded-3 mb-4 alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2 text-success"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-6">
+            <div class="stat-card border border-secondary border-opacity-10">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="stat-value text-secondary">@activeWashCount</div>
+                        <div class="stat-label fw-semibold text-uppercase tracking-wider mt-1" style="font-size: 0.72rem;">Active Wash Load Queue</div>
+                    </div>
+                    <div class="stat-icon bg-secondary bg-opacity-10 rounded-3 p-3">
+                        <i class="fas fa-soap fa-2x text-secondary"></i>
+                    </div>
+                </div>
+                <small class="text-muted mt-2 d-block">Bags currently under cleaning or processing cycle</small>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="stat-card border border-success border-opacity-10">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="stat-value text-success">@completedCount</div>
+                        <div class="stat-label fw-semibold text-uppercase tracking-wider mt-1" style="font-size: 0.72rem;">Done / Ready Packages</div>
+                    </div>
+                    <div class="stat-icon bg-success bg-opacity-10 rounded-3 p-3">
+                        <i class="fas fa-clipboard-check fa-2x text-success"></i>
+                    </div>
+                </div>
+                <small class="text-muted mt-2 d-block">Processed laundry items waiting on delivery courier routing</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-header bg-white border-0 pt-4 px-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0">My Station Assignments</h5>
+                <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-20 px-2.5 py-1.5 rounded-2 small">
+                    <i class="fas fa-spinner fa-spin me-1"></i> Plant Floor Live Sync
+                </span>
+            </div>
+        </div>
+        <div class="card-body p-4">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Ticket ID</th>
+                            <th>Service Category</th>
+                            <th>Care Plan Spec</th>
+                            <th>Fabric Weight</th>
+                            <th>Internal Progress Status</th>
+                            <th class="text-center" style="width: 280px;">Assembly Station Controls</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            foreach (var order in Model)
+                            {
+                                var clearOrderId = order.OrderId.ToString().PadLeft(4, '0');
+                                
+                                <tr>
+                                    <td><span class="text-secondary fw-bold">#@clearOrderId</span></td>
+                                    <td>
+                                        <div class="fw-bold text-dark">@order.ServiceType</div>
+                                        <small class="text-muted text-uppercase font-monospace d-block" style="font-size: 0.68rem;">Detergent: @order.DetergentType</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-dark rounded-2 px-2 py-1 text-uppercase font-monospace small" style="font-size: 0.68rem;">
+                                            @order.PackageTier
+                                        </span>
+                                    </td>
+                                    <td><span class="fw-semibold text-secondary small">@order.WeightKg kg</span></td>
+                                    <td>
+                                        @{
+                                            var trackingColorClass = order.Status switch
+                                            {
+                                                OrderStatus.PickupAssigned or OrderStatus.DriverEnRoute or OrderStatus.PickedUp => "bg-light text-muted border",
+                                                OrderStatus.AtLaundry => "bg-primary bg-opacity-10 text-primary border border-primary border-opacity-20",
+                                                OrderStatus.WashingInProgress => "bg-warning bg-opacity-10 text-warning border border-warning border-opacity-20",
+                                                OrderStatus.Completed => "bg-success bg-opacity-10 text-success border border-success border-opacity-20",
+                                                _ => "bg-light text-muted border"
+                                            };
+                                        }
+                                        <span class="badge @trackingColorClass rounded-2 px-2.5 py-1.5">@order.Status</span>
+                                    </td>
+                                    <td class="text-center">
+                                        @if (order.Status == OrderStatus.PickupAssigned || order.Status == OrderStatus.DriverEnRoute || order.Status == OrderStatus.PickedUp)
+                                        {
+                                            <div class="text-muted font-monospace small py-1 bg-light border border-dashed rounded text-center" style="font-size: 0.76rem;">
+                                                <i class="fas fa-truck-moving opacity-60 me-1"></i> Driver transit run collection pending
+                                            </div>
+                                        }
+                                        else if (order.Status == OrderStatus.AtLaundry)
+                                        {
+                                            <form asp-action="TransitionWorkState" method="post" class="m-0">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="orderId" value="@order.OrderId" />
+                                                <input type="hidden" name="targetStatus" value="@OrderStatus.WashingInProgress" />
+                                                <button type="submit" class="btn btn-sm btn-outline-warning text-dark w-100 rounded-pill fw-medium shadow-sm">
+                                                    <i class="fas fa-arrow-right me-1.5"></i> Begin Cleaning (Start Wash Cycle)
+                                                </button>
+                                            </form>
+                                        }
+                                        else if (order.Status == OrderStatus.WashingInProgress)
+                                        {
+                                            <form asp-action="TransitionWorkState" method="post" class="m-0">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="orderId" value="@order.OrderId" />
+                                                <input type="hidden" name="targetStatus" value="@OrderStatus.Completed" />
+                                                <button type="submit" class="btn btn-sm btn-success w-100 rounded-pill fw-bold shadow-sm">
+                                                    <i class="fas fa-check-circle me-1.5"></i> Mark Done (Ready for Packing)
+                                                </button>
+                                            </form>
+                                        }
+                                        else
+                                        {
+                                            <div class="text-success font-monospace small py-1 bg-success bg-opacity-5 border border-success border-opacity-10 rounded text-center" style="font-size: 0.76rem;">
+                                                <i class="fas fa-clipboard-check me-1"></i> Work Done. Dispatching to courier.
+                                            </div>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="6" class="text-center py-5 text-muted small">
+                                    <i class="fas fa-soap d-block fa-2x mb-2 text-muted opacity-40"></i>
+                                    No active fabric packages are currently assigned to your machine setup station.
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

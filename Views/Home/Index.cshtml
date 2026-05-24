@@ -1,0 +1,201 @@
+﻿@{
+    ViewData["Title"] = "Premium Laundry Service in Gqeberha - SUDS & SPIN";
+    var isAuthenticated = User.Identity?.IsAuthenticated == true;
+    var newsletterSuccess = TempData["NewsletterSuccess"] as string;
+    var newsletterError = TempData["NewsletterError"] as string;
+}
+
+@if (!string.IsNullOrEmpty(newsletterSuccess))
+{
+    <div class="alert alert-success text-center m-3" style="position: fixed; top: 80px; left: 50%; transform: translateX(-50%); z-index: 1000; max-width: 400px;">
+        <i class="fas fa-check-circle"></i> @newsletterSuccess
+    </div>
+}
+@if (!string.IsNullOrEmpty(newsletterError))
+{
+    <div class="alert alert-danger text-center m-3" style="position: fixed; top: 80px; left: 50%; transform: translateX(-50%); z-index: 1000; max-width: 400px;">
+        <i class="fas fa-exclamation-circle"></i> @newsletterError
+    </div>
+}
+
+<!-- Hero Section -->
+<section class="hero" id="home">
+    <div class="container">
+        <div class="hero-grid">
+            <div class="hero-content" data-aos="fade-right">
+                <span class="hero-badge">✨ Gqeberha's Most Trusted Laundry Service</span>
+                <h1 class="hero-title">
+                    Fresh laundry.<br>
+                    <span class="hero-highlight">Delivered to your door.</span>
+                </h1>
+                <p class="hero-description">
+                    We pick up, wash, fold, and deliver same-day. Serving Walmer, Summerstrand,
+                    Mill Park, and all surrounding areas in Gqeberha (Port Elizabeth).
+                </p>
+                <div class="hero-buttons">
+                    @if (isAuthenticated)
+                    {
+                        <a href="/Order/Create" class="btn-primary-custom">Order Now <i class="fas fa-arrow-right"></i></a>
+                    }
+                    else
+                    {
+                        <a href="/Account/Register" class="btn-primary-custom">Get Started <i class="fas fa-arrow-right"></i></a>
+                        <a href="/Account/Login" class="btn-outline-custom">Sign In</a>
+                    }
+                </div>
+            </div>
+            <div class="hero-image" data-aos="fade-left">
+                <div class="trust-badge">
+                    <div class="trust-icon">⭐</div>
+                    <div class="trust-text">
+                        <strong>4.9 ★ (500+ reviews)</strong>
+                        <span>Rated #1 Laundry in Gqeberha</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works -->
+<section class="section" id="how-it-works">
+    <div class="container">
+        <div class="section-header" data-aos="fade-up">
+            <h2 class="section-title">How it works</h2>
+            <p class="section-subtitle">Three simple steps to fresh laundry</p>
+        </div>
+        <div class="steps-grid">
+            <div class="step-card" data-aos="fade-up" data-aos-delay="0">
+                <div class="step-number">01</div>
+                <div class="step-icon"><i class="fas fa-mobile-alt"></i></div>
+                <h3 class="step-title">Book online</h3>
+                <p class="step-description">Choose your service and pickup time in under 2 minutes</p>
+            </div>
+            <div class="step-arrow"><i class="fas fa-arrow-right"></i></div>
+            <div class="step-card" data-aos="fade-up" data-aos-delay="100">
+                <div class="step-number">02</div>
+                <div class="step-icon"><i class="fas fa-truck"></i></div>
+                <h3 class="step-title">Free pickup</h3>
+                <p class="step-description">We collect from your doorstep at no extra cost</p>
+            </div>
+            <div class="step-arrow"><i class="fas fa-arrow-right"></i></div>
+            <div class="step-card" data-aos="fade-up" data-aos-delay="200">
+                <div class="step-number">03</div>
+                <div class="step-icon"><i class="fas fa-home"></i></div>
+                <h3 class="step-title">Fresh delivery</h3>
+                <p class="step-description">Clean laundry returned within 24-48 hours</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Services -->
+<section class="section bg-light" id="services">
+    <div class="container">
+        <div class="section-header" data-aos="fade-up">
+            <h2 class="section-title">Services & pricing</h2>
+            <p class="section-subtitle">No surprises. Just clean clothes.</p>
+        </div>
+        <div class="services-grid">
+            <div class="service-card" data-aos="fade-up" data-aos-delay="0">
+                <div class="service-icon"><i class="fas fa-water"></i></div>
+                <div class="service-name">Wash & Fold</div>
+                <div class="service-price">R35 <span class="service-unit">/kg</span></div>
+                <div class="service-desc">Wash, dry, and neatly folded. Perfect for everyday laundry.</div>
+                <a href="@(isAuthenticated ? "/Order/Create" : "/Account/Register")" class="service-link">Select →</a>
+            </div>
+            <div class="service-card featured" data-aos="fade-up" data-aos-delay="100">
+                <div class="service-badge">Most popular</div>
+                <div class="service-icon"><i class="fas fa-star"></i></div>
+                <div class="service-name">Dry Cleaning</div>
+                <div class="service-price">R60 <span class="service-unit">/item</span></div>
+                <div class="service-desc">Professional care for suits, dresses, and delicate fabrics.</div>
+                <a href="@(isAuthenticated ? "/Order/Create" : "/Account/Register")" class="service-link">Select →</a>
+            </div>
+            <div class="service-card" data-aos="fade-up" data-aos-delay="200">
+                <div class="service-icon"><i class="fas fa-bolt"></i></div>
+                <div class="service-name">Express Service</div>
+                <div class="service-price">R80 <span class="service-unit">/kg</span></div>
+                <div class="service-desc">Same-day service when you order by 8am.</div>
+                <a href="@(isAuthenticated ? "/Order/Create" : "/Account/Register")" class="service-link">Select →</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Subscription Plans -->
+<section class="section" id="pricing">
+    <div class="container">
+        <div class="section-header" data-aos="fade-up">
+            <h2 class="section-title">Subscription plans</h2>
+            <p class="section-subtitle">Save more with monthly memberships</p>
+        </div>
+        <div class="plans-grid">
+            <div class="plan-card" data-aos="fade-up" data-aos-delay="0">
+                <div class="plan-name">Standard</div>
+                <div class="plan-price">R49 <span class="plan-period">/month</span></div>
+                <ul class="plan-features">
+                    <li><i class="fas fa-check"></i> 2 free deliveries/month</li>
+                    <li><i class="fas fa-check"></i> 5% off all services</li>
+                    <li><i class="fas fa-check"></i> Standard support</li>
+                </ul>
+                <a href="@(isAuthenticated ? "/Subscription/Upgrade" : "/Account/Register")" class="plan-link">Choose plan →</a>
+            </div>
+            <div class="plan-card featured" data-aos="fade-up" data-aos-delay="100">
+                <div class="plan-badge">Best value</div>
+                <div class="plan-name">Premium</div>
+                <div class="plan-price">R99 <span class="plan-period">/month</span></div>
+                <ul class="plan-features">
+                    <li><i class="fas fa-check"></i> 5 free deliveries/month</li>
+                    <li><i class="fas fa-check"></i> 10% off all services</li>
+                    <li><i class="fas fa-check"></i> Priority support</li>
+                   @*  <li><i class="fas fa-check"></i> Free fabric softener</li> *@
+                </ul>
+                <a href="@(isAuthenticated ? "/Subscription/Upgrade" : "/Account/Register")" class="plan-link featured-link">Choose plan →</a>
+            </div>
+            <div class="plan-card" data-aos="fade-up" data-aos-delay="200">
+                <div class="plan-name">Business</div>
+                <div class="plan-price">R199 <span class="plan-period">/month</span></div>
+                <ul class="plan-features">
+                    <li><i class="fas fa-check"></i> 10 free deliveries/month</li>
+                    <li><i class="fas fa-check"></i> 15% off all services</li>
+                    <li><i class="fas fa-check"></i> Priority support</li>
+                    <li><i class="fas fa-check"></i> Corporate reporting</li>
+                </ul>
+                <a href="@(isAuthenticated ? "/Subscription/Upgrade" : "/Account/Register")" class="plan-link">Choose plan →</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FAQ -->
+<section class="section bg-light" id="faq">
+    <div class="container">
+        <div class="section-header" data-aos="fade-up">
+            <h2 class="section-title">Frequently asked questions</h2>
+            <p class="section-subtitle">Everything you need to know</p>
+        </div>
+        <div class="faq-grid">
+            <div class="faq-item" data-aos="fade-up" data-aos-delay="0">
+                <div class="faq-question">What areas do you serve?</div>
+                <div class="faq-answer">We proudly serve all of Gqeberha (Port Elizabeth) including Walmer, Summerstrand, Mill Park, Central, Newton Park, Lorraine, and surrounding suburbs. Free pickup and delivery included!</div>
+            </div>
+            <div class="faq-item" data-aos="fade-up" data-aos-delay="50">
+                <div class="faq-question">When do you operate?</div>
+                <div class="faq-answer">We operate Monday to Saturday, 8am to 5pm. We're closed on Sundays to give our team a well-deserved rest. Orders placed before 9am qualify for same-day express service.</div>
+            </div>
+            <div class="faq-item" data-aos="fade-up" data-aos-delay="100">
+                <div class="faq-question">How long does service take?</div>
+                <div class="faq-answer">Standard service takes 24-48 hours from pickup to delivery. Express service (order by 9am) is same-day. Premium and Business subscribers get priority processing.</div>
+            </div>
+            <div class="faq-item" data-aos="fade-up" data-aos-delay="150">
+                <div class="faq-question">What if something gets damaged?</div>
+                <div class="faq-answer">We take extreme care with all garments using professional-grade equipment and eco-friendly products. In the rare event of damage, we're fully insured and will make it right.</div>
+            </div>
+            <div class="faq-item" data-aos="fade-up" data-aos-delay="200">
+                <div class="faq-question">Can I track my order?</div>
+                <div class="faq-answer">Absolutely! Once your order is placed, you'll receive real-time updates via SMS and email. You can also track your order status live from your account dashboard.</div>
+            </div>
+        </div>
+    </div>
+</section>

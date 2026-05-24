@@ -1,0 +1,421 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - SUDS & SPIN Customer</title>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap + Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <!-- Toastr for notifications -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" />
+
+    <style>
+        :root {
+            --teal: #2A9D8F;
+            --teal-dark: #1E6B61;
+            --teal-light: #5EC4B6;
+            --deep-navy: #264653;
+            --cream: #F4F1DE;
+            --sand: #E9C46A;
+            --warm-gray: #E8E0D5;
+            --text-dark: #3D4452;
+            --text-soft: #6B7280;
+            --white: #FFFFFF;
+            --success: #2A9D8F;
+            --warning: #E9C46A;
+            --error: #E76F51;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--cream);
+            color: var(--text-dark);
+            line-height: 1.5;
+        }
+
+        /* Top Bar */
+        .top-bar {
+            background: var(--deep-navy);
+            color: white;
+            padding: 8px 0;
+            font-size: 0.8rem;
+        }
+
+        /* Navigation */
+        .navbar {
+            background: white;
+            padding: 0.8rem 0;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+            transition: all 0.3s ease;
+        }
+
+        .navbar.scrolled {
+            padding: 0.5rem 0;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+
+        .brand-icon {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, var(--teal), var(--teal-dark));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .brand-icon i {
+            color: white;
+            font-size: 1.4rem;
+        }
+
+        .brand-text {
+            line-height: 1.2;
+        }
+
+        .brand-name {
+            font-size: 1.4rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, var(--teal), var(--teal-dark));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            display: block;
+        }
+
+        .brand-tagline {
+            font-size: 0.7rem;
+            color: var(--text-soft);
+            letter-spacing: 1px;
+        }
+
+        .nav-link {
+            font-weight: 500;
+            color: var(--deep-navy);
+            margin: 0 4px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover {
+            color: var(--teal);
+        }
+
+        /* Notification Bell */
+        .notification-bell {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: var(--error);
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .notification-dropdown {
+            width: 350px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .notification-item {
+            padding: 12px;
+            border-bottom: 1px solid var(--warm-gray);
+            transition: background 0.2s;
+        }
+
+        .notification-item:hover {
+            background: rgba(42,157,143,0.05);
+        }
+
+        .notification-item.unread {
+            background: rgba(42,157,143,0.1);
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--deep-navy);
+            color: white;
+            padding: 60px 0 20px;
+            margin-top: 60px;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 20px;
+            margin-top: 40px;
+            text-align: center;
+            font-size: 0.85rem;
+            opacity: 0.7;
+        }
+
+        /* Main Content */
+        .main-content {
+            min-height: calc(100vh - 200px);
+            padding: 40px 0;
+        }
+
+        /* Form Container */
+        .form-container {
+            background: white;
+            border-radius: 24px;
+            padding: 30px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 text-center text-md-start">
+                    <small><i class="fas fa-phone-alt me-2"></i> +27 41 123 4567</small>
+                    <span class="mx-2">|</span>
+                    <small><i class="fas fa-envelope me-2"></i> hello@sudsandspin.co.za</small>
+                </div>
+                <div class="col-md-6 text-center text-md-end">
+                    <small><i class="fas fa-clock me-2"></i> Mon-Sat: 8am - 5pm</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg sticky-top" id="mainNavbar">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <div class="brand-icon">
+                    <i class="fas fa-tshirt"></i>
+                </div>
+                <div class="brand-text">
+                    <span class="brand-name">SUDS & SPIN</span>
+                    <span class="brand-tagline">Gqeberha's finest</span>
+                </div>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    @* <li class="nav-item"><a class="nav-link" href="/">Home</a></li> *@
+                    <li class="nav-item"><a class="nav-link" href="/Order/Create">New Order</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/Order/MyOrders">My Orders</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/Subscription/Manage">Subscription</a></li>
+                    <li class="nav-item dropdown notification-bell">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" id="notificationBell">
+                            <i class="fas fa-bell"></i>
+                            <span class="notification-badge" id="notificationCount" style="display: none;">0</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end notification-dropdown" id="notificationList">
+                            <li class="dropdown-header">Notifications</li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li class="text-center text-muted">No new notifications</li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle"></i> @User.Identity.Name.Split('@')[0]
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="/Account/Profile"><i class="fas fa-user"></i> Profile</a></li>
+                            <li><a class="dropdown-item" href="/Order/MyOrders"><i class="fas fa-box"></i> My Orders</a></li>
+                            <li><a class="dropdown-item" href="/Subscription/Manage"><i class="fas fa-gem"></i> Subscription</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="#" onclick="document.getElementById('logoutForm').submit();"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <form id="logoutForm" action="/Account/Logout" method="post" style="display:none;"></form>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        @RenderBody()
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 mb-4 mb-lg-0">
+                    <div class="footer-brand">
+                        <i class="fas fa-tshirt"></i>
+                        <span>SUDS & SPIN</span>
+                    </div>
+                    <p class="footer-about">Gqeberha's premier laundry service. We care for your clothes like you would.</p>
+                </div>
+                <div class="col-lg-2 col-md-6 mb-4 mb-lg-0">
+                    <h6>Quick Links</h6>
+                    <ul>
+                        <li><a href="/">Home</a></li>
+                        <li><a href="/Order/Create">New Order</a></li>
+                        <li><a href="/Order/MyOrders">My Orders</a></li>
+                        <li><a href="/Subscription/Manage">Subscription</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-4 mb-lg-0">
+                    <h6>Contact Us</h6>
+                    <ul class="contact-info">
+                        <li><i class="fas fa-phone-alt"></i> <a href="tel:+27411234567">+27 41 123 4567</a></li>
+                        <li><i class="fas fa-envelope"></i> <a href="mailto:hello@sudsandspin.co.za">hello@sudsandspin.co.za</a></li>
+                        <li><i class="fas fa-map-marker-alt"></i> 123 Main Road, Walmer, Gqeberha, 6070</li>
+                    </ul>
+                </div>
+                <div class="col-lg-3">
+                    <h6>Newsletter</h6>
+                    <p class="small">Get 10% off your first order!</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; @DateTime.Now.Year SUDS & SPIN — Gqeberha's Premium Laundry Service</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+
+    <script>
+        // Toastr configuration
+        toastr.options = {
+            "closeButton": true,
+            "progressBar": true,
+            "positionClass": "toast-top-right",
+            "timeOut": "5000"
+        };
+
+        // SignalR Connection for real-time notifications
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/notificationHub")
+            .build();
+
+        connection.start().then(() => {
+            console.log("SignalR connected");
+            
+            // Join user's personal notification group
+            const userId = '@User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value';
+            if (userId) {
+                connection.invoke("JoinUserGroup", userId);
+            }
+        }).catch(err => console.error("SignalR error:", err));
+
+        // Receive notifications
+        connection.on("ReceiveNotification", (title, message, orderId) => {
+            // Show toast notification
+            toastr.success(message, title);
+            
+            // Update notification bell
+            updateNotificationBell();
+            
+            // Play sound (optional)
+            // new Audio('/sounds/notification.mp3').play();
+        });
+
+        connection.on("OrderStatusUpdate", (orderNumber, status, message) => {
+            toastr.info(message, `Order #${orderNumber} - ${status}`);
+            updateNotificationBell();
+        });
+
+        // Load notifications
+        function loadNotifications() {
+            $.get('/Notification/GetUserNotifications', function(data) {
+                const $list = $('#notificationList');
+                $list.empty();
+                $list.append('<li class="dropdown-header">Notifications</li><li><hr class="dropdown-divider"></li>');
+                
+                if (data.length === 0) {
+                    $list.append('<li class="text-center text-muted">No new notifications</li>');
+                    $('#notificationCount').hide();
+                } else {
+                    const unreadCount = data.filter(n => !n.isRead).length;
+                    if (unreadCount > 0) {
+                        $('#notificationCount').text(unreadCount).show();
+                    } else {
+                        $('#notificationCount').hide();
+                    }
+                    
+                    data.forEach(notification => {
+                        $list.append(`
+                            <li class="notification-item ${!notification.isRead ? 'unread' : ''}" data-id="${notification.id}">
+                                <div class="d-flex justify-content-between">
+                                    <strong>${notification.title}</strong>
+                                    <small class="text-muted">${new Date(notification.createdAt).toLocaleTimeString()}</small>
+                                </div>
+                                <p class="small mb-0">${notification.message}</p>
+                            </li>
+                        `);
+                    });
+                }
+            });
+        }
+
+        function updateNotificationBell() {
+            $.get('/Notification/GetUnreadCount', function(count) {
+                if (count > 0) {
+                    $('#notificationCount').text(count).show();
+                } else {
+                    $('#notificationCount').hide();
+                }
+            });
+            
+            // Also reload notifications when bell is clicked
+            $('#notificationBell').on('click', function() {
+                loadNotifications();
+            });
+        }
+
+        // Mark notification as read when clicked
+        $(document).on('click', '.notification-item', function() {
+            const id = $(this).data('id');
+            $.post('/Notification/MarkAsRead', { id: id }, function() {
+                $(this).removeClass('unread');
+                updateNotificationBell();
+            }.bind(this));
+        });
+
+        // Initial load
+        loadNotifications();
+        updateNotificationBell();
+
+        // Auto-refresh notifications every 30 seconds
+        setInterval(updateNotificationBell, 30000);
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

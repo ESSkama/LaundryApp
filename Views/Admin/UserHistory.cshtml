@@ -1,0 +1,137 @@
+﻿@model List<Laundry.Models.Order>
+@{
+    ViewData["Title"] = $"Operational Audit Sheet — {ViewBag.CustomerName}";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    
+    decimal lifeSpend = ViewBag.LifetimeSpend ?? 0m;
+}
+
+<div class="admin-dashboard p-1">
+    <div class="mb-3">
+        <a href="/Admin/ManageUsers" class="btn btn-sm btn-link text-decoration-none text-secondary p-0">
+            <i class="fas fa-arrow-left me-1"></i> Return to Customer Registry Database
+        </a>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="fw-bold text-dark mb-1">@ViewBag.CustomerName</h6>
+                        <small class="text-muted font-monospace d-block" style="font-size: 0.75rem;">@ViewBag.CustomerEmail</small>
+                        <small class="text-muted font-monospace d-block" style="font-size: 0.75rem;">@ViewBag.CustomerPhone</small>
+                    </div>
+                    <div class="bg-light text-secondary rounded-3 p-2.5"><i class="fas fa-address-card fa-lg"></i></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="stat-value text-primary">@ViewBag.TotalOrdersCount</div>
+                        <div class="stat-label fw-semibold text-uppercase tracking-wider mt-1" style="font-size: 0.68rem;">Lifetime Orders Made</div>
+                    </div>
+                    <div class="bg-primary bg-opacity-10 text-primary rounded-3 p-3"><i class="fas fa-receipt fa-lg"></i></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="stat-value text-success">@lifeSpend.ToString("C0")</div>
+                        <div class="stat-label fw-semibold text-uppercase tracking-wider mt-1" style="font-size: 0.68rem;">Verified Lifetime Value</div>
+                    </div>
+                    <div class="bg-success bg-opacity-10 text-success rounded-3 p-3"><i class="fas fa-wallet fa-lg"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-header bg-white border-0 pt-4 px-4">
+            <h5 class="fw-bold mb-0">Past Operations & Fulfillment Logs</h5>
+        </div>
+        <div class="card-body p-4">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Fulfillment Date</th>
+                            <th>Package Spec</th>
+                            <th>Assigned Team Log (Logistics & Production)</th>
+                            <th>Total Financials</th>
+                            <th>Current State</th>
+                            <th class="text-center">System Link</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            foreach (var order in Model)
+                            {
+                                var clearOrderId = order.OrderId.ToString().PadLeft(4, '0');
+                                
+                                <tr>
+                                    <td><span class="text-secondary fw-bold">#@clearOrderId</span></td>
+                                    <td>
+                                        <div class="fw-bold text-dark small">@order.OrderDate.ToString("dd MMM yyyy")</div>
+                                        <small class="text-muted font-monospace" style="font-size: 0.72rem;">@order.OrderDate.ToString("hh:mm tt")</small>
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold text-dark small">@order.ServiceType</div>
+                                        <span class="badge bg-dark bg-opacity-5 text-dark small font-monospace px-2 py-0.5" style="font-size: 0.68rem;">@order.PackageTier Tier</span>
+                                    </td>
+                                    <td>
+                                        <div class="mb-1" style="font-size: 0.82rem;">
+                                            <i class="fas fa-truck text-muted me-1.5" style="width:14px;"></i> Courier: 
+                                            <strong class="@(order.AssignedDriverId.HasValue ? "text-dark" : "text-muted font-monospace small")">
+                                                @(order.DriverName ?? "Unassigned")
+                                            </strong>
+                                        </div>
+                                        <div style="font-size: 0.82rem;">
+                                            <i class="fas fa-soap text-muted me-1.5" style="width:14px;"></i> Staff Washer: 
+                                            <strong class="@(order.AssignedStaffId.HasValue ? "text-dark" : "text-muted font-monospace small")">
+                                                @(order.AssignedStaffName ?? "Unassigned")
+                                            </strong>
+                                        </div>
+                                    </td>
+                                    <td><span class="fw-bold text-dark">@order.TotalAmount.ToString("C")</span></td>
+                                    <td>
+                                        @{
+                                            var trackingBadgeClass = order.Status switch
+                                            {
+                                                Laundry.Models.OrderStatus.Delivered => "bg-success bg-opacity-10 text-success border border-success border-opacity-20",
+                                                Laundry.Models.OrderStatus.Cancelled => "bg-danger bg-opacity-10 text-danger border border-danger border-opacity-20",
+                                                Laundry.Models.OrderStatus.WashingInProgress => "bg-warning bg-opacity-10 text-warning border border-warning border-opacity-20",
+                                                _ => "bg-primary bg-opacity-10 text-primary border border-primary border-opacity-20"
+                                            };
+                                        }
+                                        <span class="badge @trackingBadgeClass rounded-2 px-2.5 py-1.5">@order.Status</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <a href="/Admin/OrderDetails/@order.OrderId" class="btn btn-sm btn-light border" title="Review Full Technical Breakdown Blueprint">
+                                            <i class="fas fa-eye text-info"></i> View Ticket
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="7" class="text-center py-5 text-muted small">
+                                    <i class="fas fa-folder-open d-block fa-2x mb-2 text-muted opacity-40"></i>
+                                    This customer profile has not logged any historical laundry order configurations yet.
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

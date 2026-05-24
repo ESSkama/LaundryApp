@@ -1,0 +1,160 @@
+﻿@model List<Laundry.Models.Order>
+@{
+    ViewData["Title"] = "Operations Order Ledger";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+
+    var currentSort = ViewBag.CurrentSortOrder as string;
+    var currentStatus = ViewBag.CurrentStatusFilter as string;
+    var currentTier = ViewBag.CurrentTierFilter as string;
+}
+
+<div class="admin-dashboard p-1">
+
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-body p-3">
+            <form method="get" action="/Admin/ManageOrders" class="row g-2 align-items-center">
+                
+                <div class="col-md-3">
+                    <select name="statusFilter" class="form-select form-select-sm rounded-3">
+                        <option value="">-- Filter By Status --</option>
+                        @foreach (var status in ViewBag.Statuses)
+                        {
+                            <!option value="@status" @(currentStatus == status.ToString() ? "selected" : "")>@status</!option>
+                        }
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <select name="tierFilter" class="form-select form-select-sm rounded-3">
+                        <option value="">-- Filter By Service Tier --</option>
+                        @foreach (var tier in ViewBag.Tiers)
+                        {
+                            <!option value="@tier" @(currentTier == tier ? "selected" : "")>@tier Tier</!option>
+                        }
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <select name="sortOrder" class="form-select form-select-sm rounded-3">
+                        <!option value="desc" @(currentSort == "desc" ? "selected" : "")>Sort: Newest to Oldest</!option>
+                        <!option value="asc" @(currentSort == "asc" ? "selected" : "")>Sort: Oldest to Newest</!option>
+                    </select>
+                </div>
+
+                <div class="col-md-3 d-flex gap-2">
+                    <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3 w-100 fw-medium">
+                        <i class="fas fa-filter me-1"></i> Apply Filters
+                    </button>
+                    <a href="/Admin/ManageOrders" class="btn btn-sm btn-light border rounded-pill px-2" title="Reset Filters">
+                        <i class="fas fa-sync-alt text-secondary"></i>
+                    </a>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-header bg-white border-0 pt-4 px-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0">Centralized Lifecycle Ledger</h5>
+                <span class="badge bg-dark bg-opacity-5 text-dark rounded-2 px-2.5 py-1.5 small fw-bold">
+                    Matches Found: @Model.Count
+                </span>
+            </div>
+        </div>
+        <div class="card-body p-4">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Ticket ID</th>
+                            <th>Placement Date</th>
+                            <th>Customer Account</th>
+                            <th>Tier Plan</th>
+                            <th>Assigned Dispatch Staff</th>
+                            <th>Total Gross</th>
+                            <th>Fulfillment State</th>
+                            <th class="text-end" style="width: 120px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            foreach (var order in Model)
+                            {
+                                var clearOrderId = order.OrderId.ToString().PadLeft(4, '0');
+                                
+                                <tr>
+                                    <td><span class="text-secondary fw-bold">#@clearOrderId</span></td>
+                                    <td>
+                                        <div class="fw-bold text-dark small">@order.OrderDate.ToString("dd MMM yyyy")</div>
+                                        <small class="text-muted font-monospace" style="font-size: 0.72rem;">@order.OrderDate.ToString("hh:mm tt")</small>
+                                    </td>
+                                    <td>
+                                        <div class="fw-semibold text-dark">@(order.User?.FullName ?? "Walk-in Customer")</div>
+                                        <small class="text-muted font-monospace" style="font-size: 0.72rem;">@order.User?.PhoneNumber</small>
+                                    </td>
+                                    <td>
+                                        @{
+                                            var tierBadgeStyle = order.PackageTier.ToLower() switch
+                                            {
+                                                "premium" => "bg-primary bg-opacity-10 text-primary border border-primary border-opacity-10",
+                                                "business" or "corporate" => "bg-info bg-opacity-10 text-info border border-info border-opacity-10",
+                                                _ => "bg-light text-dark border"
+                                            };
+                                        }
+                                        <span class="badge @tierBadgeStyle rounded-2 px-2.5 py-1.5">@order.PackageTier</span>
+                                    </td>
+                                    <td>
+                                        <div class="mb-1" style="font-size: 0.8rem;">
+                                            <i class="fas fa-truck text-muted me-1.5" style="width:14px;"></i>
+                                            Courier: <span class="fw-medium text-dark">@(order.DriverName ?? "None")</span>
+                                        </div>
+                                        <div style="font-size: 0.8rem;">
+                                            <i class="fas fa-soap text-muted me-1.5" style="width:14px;"></i>
+                                            Washer: <span class="fw-medium text-dark">@(order.AssignedStaffName ?? "None")</span>
+                                        </div>
+                                    </td>
+                                    <td><span class="fw-bold text-dark">@order.TotalAmount.ToString("C")</span></td>
+                                    <td>
+                                        @{
+                                            var statusColorClass = order.Status switch
+                                            {
+                                                Laundry.Models.OrderStatus.Delivered => "bg-success bg-opacity-10 text-success border border-success border-opacity-20",
+                                                Laundry.Models.OrderStatus.PickupAssigned => "bg-primary bg-opacity-10 text-primary border border-primary border-opacity-20",
+                                                Laundry.Models.OrderStatus.WashingInProgress => "bg-warning bg-opacity-10 text-warning border border-warning border-opacity-20",
+                                                Laundry.Models.OrderStatus.Cancelled => "bg-danger bg-opacity-10 text-danger border border-danger border-opacity-20",
+                                                _ => "bg-light text-muted border"
+                                            };
+                                        }
+                                        <span class="badge @statusColorClass rounded-pill px-2.5 py-1.5">@order.Status</span>
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="btn-group rounded-3 shadow-sm" style="overflow: hidden;">
+                                            <a href="/Admin/OrderDetails/@order.OrderId" class="btn btn-sm btn-light border-end" title="Full Breakdown View">
+                                                <i class="fas fa-eye text-info"></i>
+                                            </a>
+                                            <a href="/Admin/UpdateOrderStatus/@order.OrderId" class="btn btn-sm btn-light" title="Override Lifecycle Status">
+                                                <i class="fas fa-edit text-primary"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="8" class="text-center py-5 text-muted small">
+                                    <i class="fas fa-search d-block fa-2x mb-2 text-muted opacity-40"></i>
+                                    No logged orders match your search criteria.
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

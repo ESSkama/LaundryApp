@@ -1,0 +1,212 @@
+﻿@model Laundry.Models.ViewModels.LoginViewModel
+@{
+    ViewData["Title"] = "Sign In - SUDS & SPIN";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <style>
+        /* Your existing styles */
+        :root {
+            --teal: #2A9D8F;
+            --teal-dark: #1E6B61;
+            --deep-teal: #264653;
+            --cream: #F4F1DE;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--cream) 0%, white 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+        }
+
+        .login-container {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .login-card {
+            background: white;
+            border-radius: 32px;
+            padding: 48px 40px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.08);
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+            .logo i {
+                font-size: 3rem;
+                color: var(--teal);
+            }
+
+            .logo h1 {
+                font-size: 1.8rem;
+                font-weight: 700;
+                margin: 12px 0 4px;
+                background: linear-gradient(135deg, var(--teal), var(--teal-dark));
+                -webkit-background-clip: text;
+                background-clip: text;
+                color: transparent;
+            }
+
+            .logo p {
+                color: #6c757d;
+                font-size: 0.9rem;
+            }
+
+        .form-control {
+            border: 2px solid #e9ecef;
+            border-radius: 16px;
+            padding: 12px 16px;
+        }
+
+            .form-control:focus {
+                border-color: var(--teal);
+                box-shadow: 0 0 0 4px rgba(42,157,143,0.1);
+            }
+
+        .btn-login {
+            background: linear-gradient(135deg, var(--teal), var(--teal-dark));
+            border: none;
+            padding: 14px;
+            border-radius: 50px;
+            font-weight: 600;
+            width: 100%;
+            color: white;
+        }
+
+            .btn-login:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(42,157,143,0.3);
+            }
+
+        .forgot-link {
+            color: var(--teal);
+            text-decoration: none;
+            font-size: 0.85rem;
+        }
+
+            .forgot-link:hover {
+                text-decoration: underline;
+            }
+
+        .alert {
+            border-radius: 16px;
+        }
+
+        /* Additional styles for error summary */
+        .validation-summary-errors ul {
+            margin-bottom: 0;
+            padding-left: 20px;
+        }
+
+        .validation-summary-errors li {
+            list-style: none;
+            position: relative;
+            padding-left: 24px;
+        }
+
+            .validation-summary-errors li:before {
+                content: "⚠️";
+                position: absolute;
+                left: 0;
+                top: 0;
+            }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="login-container">
+            <div class="login-card">
+                <div class="logo">
+                    <i class="fas fa-tshirt"></i>
+                    <h1>SUDS & SPIN</h1>
+                    <p>Sign in to your account</p>
+                </div>
+                
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        @TempData["Success"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+
+                <!-- Display validation errors -->
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    var errors = ViewData.ModelState.Values.SelectMany(v => v.Errors);
+                    foreach (var error in errors)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="fas fa-exclamation-circle me-2"></i> @error.ErrorMessage
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+                }
+
+                <form method="post" asp-action="Login" asp-controller="Account">
+                    @Html.AntiForgeryToken()
+
+                    <!-- Hidden field for return URL -->
+                    @if (!string.IsNullOrEmpty(Context.Request.Query["returnUrl"]))
+                    {
+                        <input type="hidden" name="returnUrl" value="@Context.Request.Query["returnUrl"]" />
+                    }
+
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label">Email Address</label>
+                        <input asp-for="Email" class="form-control" placeholder="hello@sudsandspin.com" autofocus />
+                        <span asp-validation-for="Email" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Password" class="form-label">Password</label>
+                        <input asp-for="Password" type="password" class="form-control" placeholder="Enter your password" />
+                        <span asp-validation-for="Password" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3 d-flex justify-content-between align-items-center">
+                        <div class="form-check">
+                            <input asp-for="RememberMe" class="form-check-input" />
+                            <label asp-for="RememberMe" class="form-check-label small">Remember me</label>
+                        </div>
+                        <a asp-action="ForgotPassword" class="forgot-link">Forgot password?</a>
+                    </div>
+
+                    <button type="submit" class="btn-login">Sign In</button>
+                </form>
+
+                <hr class="my-4">
+
+                <div class="text-center">
+                    <p class="mb-0">Don't have an account? <a asp-action="Register" style="color: var(--teal); font-weight: 600; text-decoration: none;">Create Account</a></p>
+                </div>
+
+                <div class="text-center mt-3">
+                    <small class="text-muted">Demo: admin@freshdrop.com / Admin@123</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation/1.19.5/jquery.validate.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/3.2.12/jquery.validate.unobtrusive.min.js"></script>
+</body>
+</html>

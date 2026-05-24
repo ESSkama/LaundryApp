@@ -1,0 +1,460 @@
+﻿@model Laundry.Models.ViewModels.CreateOrderViewModel
+@{
+    ViewData["Title"] = "New Order - SUDS & SPIN";
+    Layout = "~/Views/Shared/_CustomerLayout.cshtml";
+}
+
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="form-container">
+                <div class="text-center mb-4">
+                    <i class="fas fa-clipboard-list fa-3x" style="color: var(--teal);"></i>
+                    <h2 class="mt-3">Place Your Order</h2>
+                    <p class="text-muted">Fill in the details below to schedule your laundry pickup</p>
+                </div>
+
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger">@TempData["Error"]</div>
+                }
+
+                <form id="orderForm" method="post" asp-action="Create">
+                    @Html.AntiForgeryToken()
+
+                    <!-- Current Subscription Info -->
+                    <div class="subscription-info mb-4" id="subscriptionInfo">
+                        <div class="text-center">
+                            <div class="spinner-border text-light" role="status">
+                                <span class="visually-hidden">Loading subscription info...</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Service Selection (Multiple - Checkboxes) -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Select Services (You can select multiple)</label>
+                        <p class="text-muted small">Check all the services you need</p>
+                        <div class="row g-3" id="servicesContainer">
+                            <!-- Wash Only -->
+                            <div class="col-md-6 service-item" data-requires="">
+                                <div class="card service-card" data-service="washonly" data-price="150" data-service-key="washonly">
+                                    <div class="card-body text-center p-3">
+                                        <i class="fas fa-tshirt fa-2x" style="color: var(--teal);"></i>
+                                        <h6 class="mt-2 mb-1">Wash Only</h6>
+                                        <strong class="text-primary">R150.00</strong>
+                                        <div class="form-check mt-2">
+                                            <input class="form-check-input service-checkbox" type="checkbox" name="SelectedServices" value="washonly" id="service_washonly">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Wash & Fold -->
+                            <div class="col-md-6 service-item" data-requires="">
+                                <div class="card service-card" data-service="washfold" data-price="250" data-service-key="washfold">
+                                    <div class="card-body text-center p-3">
+                                        <i class="fas fa-box fa-2x" style="color: var(--teal);"></i>
+                                        <h6 class="mt-2 mb-1">Wash & Fold</h6>
+                                        <strong class="text-primary">R250.00</strong>
+                                        <div class="form-check mt-2">
+                                            <input class="form-check-input service-checkbox" type="checkbox" name="SelectedServices" value="washfold" id="service_washfold">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Dry Cleaning - Requires Premium or Business -->
+                            <div class="col-md-6 service-item premium-business" data-requires="premium,business" style="display: none;">
+                                <div class="card service-card" data-service="dryclean" data-price="450" data-service-key="dryclean">
+                                    <div class="card-body text-center p-3">
+                                        <i class="fas fa-dryer fa-2x" style="color: var(--teal);"></i>
+                                        <h6 class="mt-2 mb-1">Dry Cleaning</h6>
+                                        <strong class="text-primary">R450.00</strong>
+                                        <div class="form-check mt-2">
+                                            <input class="form-check-input service-checkbox" type="checkbox" name="SelectedServices" value="dryclean" id="service_dryclean">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Ironing Service - Requires Premium or Business -->
+                            <div class="col-md-6 service-item premium-business" data-requires="premium,business" style="display: none;">
+                                <div class="card service-card" data-service="ironing" data-price="180" data-service-key="ironing">
+                                    <div class="card-body text-center p-3">
+                                        <i class="fas fa-iron fa-2x" style="color: var(--teal);"></i>
+                                        <h6 class="mt-2 mb-1">Ironing Service</h6>
+                                        <strong class="text-primary">R180.00</strong>
+                                        <div class="form-check mt-2">
+                                            <input class="form-check-input service-checkbox" type="checkbox" name="SelectedServices" value="ironing" id="service_ironing">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Express Same-Day - Requires Business only -->
+                            <div class="col-md-6 service-item business-only" data-requires="business" style="display: none;">
+                                <div class="card service-card" data-service="express" data-price="350" data-service-key="express">
+                                    <div class="card-body text-center p-3">
+                                        <i class="fas fa-bolt fa-2x" style="color: var(--teal);"></i>
+                                        <h6 class="mt-2 mb-1">Express Same-Day</h6>
+                                        <strong class="text-primary">R350.00</strong>
+                                        <div class="form-check mt-2">
+                                            <input class="form-check-input service-checkbox" type="checkbox" name="SelectedServices" value="express" id="service_express">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Keep the hidden field as backup -->
+                        <input type="hidden" id="SelectedServices" name="SelectedServices" />
+                    </div>
+
+                    <!-- Extras (User can select multiple) -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Extras (Optional - Add multiple)</label>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="card extra-card" data-extra="fabricsoftener" data-price="5">
+                                    <div class="card-body text-center p-2">
+                                        <i class="fas fa-feather-alt fa-1x" style="color: var(--teal);"></i>
+                                        <small>Fabric Softener</small>
+                                        <small class="text-muted d-block">+R5</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card extra-card" data-extra="stainremoval" data-price="12">
+                                    <div class="card-body text-center p-2">
+                                        <i class="fas fa-tint fa-1x" style="color: var(--teal);"></i>
+                                        <small>Stain Removal</small>
+                                        <small class="text-muted d-block">+R12</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card extra-card" data-extra="perfume" data-price="8">
+                                    <div class="card-body text-center p-2">
+                                        <i class="fas fa-spa fa-1x" style="color: var(--teal);"></i>
+                                        <small>Perfume Treatment</small>
+                                        <small class="text-muted d-block">+R8</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card extra-card" data-extra="delicate" data-price="10">
+                                    <div class="card-body text-center p-2">
+                                        <i class="fas fa-hand-sparkles fa-1x" style="color: var(--teal);"></i>
+                                        <small>Delicate Wash</small>
+                                        <small class="text-muted d-block">+R10</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card extra-card" data-extra="extrafolding" data-price="7">
+                                    <div class="card-body text-center p-2">
+                                        <i class="fas fa-tshirt fa-1x" style="color: var(--teal);"></i>
+                                        <small>Extra Folding</small>
+                                        <small class="text-muted d-block">+R7</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card extra-card" data-extra="hanger" data-price="9">
+                                    <div class="card-body text-center p-2">
+                                        <i class="fas fa-hanger fa-1x" style="color: var(--teal);"></i>
+                                        <small>Hanger Packaging</small>
+                                        <small class="text-muted d-block">+R9</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <input type="hidden" id="SelectedExtras" name="SelectedExtras" />
+                    </div>
+
+                    <!-- Package Benefits Display (Read-only) -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Your Package Benefits</label>
+                        <div class="row g-3" id="packageBenefits">
+                            <div class="col-md-4">
+                                <div class="card bg-light">
+                                    <div class="card-body text-center p-2">
+                                        <i class="fas fa-box fa-1x" style="color: var(--teal);"></i>
+                                        <small id="packagingBenefit">Packaging: Loading...</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card bg-light">
+                                    <div class="card-body text-center p-2">
+                                        <i class="fas fa-truck fa-1x" style="color: var(--teal);"></i>
+                                        <small id="deliveryBenefit">Delivery: Loading...</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card bg-light">
+                                    <div class="card-body text-center p-2">
+                                        <i class="fas fa-flask fa-1x" style="color: var(--teal);"></i>
+                                        <small id="detergentBenefit">Detergent: Loading...</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Weight Input -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Weight (kg)</label>
+                        <input type="number" id="WeightKg" name="WeightKg" class="form-control" value="5" min="1" step="0.5" />
+                        <small class="text-muted">Additional R5 per kg over 5kg</small>
+                    </div>
+
+                    <!-- Addresses -->
+                    <div class="row mb-4">
+                        <div class="col-12 mb-3">
+                            <label asp-for="PickupAddress" class="form-label fw-bold">Pickup Address</label>
+                            <textarea asp-for="PickupAddress" class="form-control" rows="2" placeholder="Enter your pickup address" required></textarea>
+                            <span asp-validation-for="PickupAddress" class="text-danger small"></span>
+                        </div>
+                        <div class="col-12">
+                            <label asp-for="DeliveryAddress" class="form-label fw-bold">Delivery Address</label>
+                            <textarea asp-for="DeliveryAddress" class="form-control" rows="2" placeholder="Enter your delivery address" required></textarea>
+                            <span asp-validation-for="DeliveryAddress" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <!-- Payment Method Selection -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Payment Method</label>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="card payment-card" data-payment="creditcard">
+                                    <div class="card-body text-center p-3">
+                                        <i class="fas fa-credit-card fa-2x" style="color: var(--teal);"></i>
+                                        <h6 class="mt-2 mb-1">Credit Card</h6>
+                                        <small class="text-muted">Pay with Visa/Mastercard</small>
+                                        <input type="radio" name="SelectedPayment" value="creditcard" style="display: none;" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card payment-card" data-payment="eft">
+                                    <div class="card-body text-center p-3">
+                                        <i class="fas fa-university fa-2x" style="color: var(--teal);"></i>
+                                        <h6 class="mt-2 mb-1">EFT / Bank Transfer</h6>
+                                        <small class="text-muted">Direct bank transfer</small>
+                                        <input type="radio" name="SelectedPayment" value="eft" style="display: none;" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card payment-card" data-payment="payfast">
+                                    <div class="card-body text-center p-3">
+                                        <i class="fas fa-bolt fa-2x" style="color: var(--teal);"></i>
+                                        <h6 class="mt-2 mb-1">PayFast</h6>
+                                        <small class="text-muted">Instant online payment</small>
+                                        <input type="radio" name="SelectedPayment" value="payfast" style="display: none;" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <input type="hidden" id="SelectedPayment" name="SelectedPayment" value="creditcard" />
+                    </div>
+
+                    <!-- Payment Details (Dynamic based on selection) -->
+                    <div id="paymentDetails" class="mb-4">
+                        <!-- Credit Card Details -->
+                        <div id="creditCardDetails" class="payment-detail-form">
+                            <div class="card bg-light p-3">
+                                <h6 class="mb-3">Credit Card Details</h6>
+                                <div class="row">
+                                    <div class="col-12 mb-2">
+                                        <label class="form-label small">Card Number</label>
+                                        <input type="text" id="CardNumber" name="CardNumber" class="form-control" placeholder="1234 5678 9012 3456" maxlength="19" />
+                                    </div>
+                                    <div class="col-6 mb-2">
+                                        <label class="form-label small">Expiry Date</label>
+                                        <input type="text" id="CardExpiry" name="CardExpiry" class="form-control" placeholder="MM/YY" maxlength="5" />
+                                    </div>
+                                    <div class="col-6 mb-2">
+                                        <label class="form-label small">CVV</label>
+                                        <input type="password" id="CardCvv" name="CardCvv" class="form-control" placeholder="123" maxlength="4" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- EFT Details -->
+                        <div id="eftDetails" class="payment-detail-form" style="display: none;">
+                            <div class="card bg-light p-3">
+                                <h6 class="mb-3">EFT / Bank Transfer</h6>
+                                <div class="alert alert-info small">
+                                    <i class="fas fa-info-circle"></i> After placing your order, you'll receive bank details to complete the payment.
+                                </div>
+                                <div class="mb-2">
+                                    <label class="form-label small">Reference Number (Optional)</label>
+                                    <input type="text" id="BankReference" name="BankReference" class="form-control" placeholder="Your reference" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- PayFast Details -->
+                        <div id="payfastDetails" class="payment-detail-form" style="display: none;">
+                            <div class="card bg-light p-3">
+                                <h6 class="mb-3">PayFast Payment</h6>
+                                <div class="alert alert-info small">
+                                    <i class="fas fa-info-circle"></i> You'll be redirected to PayFast to complete your payment securely.
+                                </div>
+                                <div class="mb-2">
+                                    <label class="form-label small">Email Address</label>
+                                    <input type="email" id="PayFastEmail" name="PayFastEmail" class="form-control" placeholder="your@email.com" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Hidden fields for package benefits -->
+                    <input type="hidden" id="PackagingType" name="PackagingType" />
+                    <input type="hidden" id="DeliveryMethod" name="DeliveryMethod" />
+                    <input type="hidden" id="DetergentType" name="DetergentType" />
+
+                    <button type="submit" class="btn-primary-custom w-100" id="submitBtn">
+                        <i class="fas fa-check-circle"></i> Place Order
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Order Summary Sidebar -->
+        <div class="col-lg-4">
+            <div class="form-container sticky-top" style="top: 20px;">
+                <h5 class="fw-bold mb-3">Order Summary</h5>
+                <div id="orderSummary">
+                    <div class="summary-item">
+                        <span>Services:</span>
+                        <span id="selectedServices">None selected</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Services Total:</span>
+                        <span id="servicePrice">R0.00</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Packaging:</span>
+                        <span id="packagingText">-</span>
+                        <span id="packagingFee">R0.00</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Delivery:</span>
+                        <span id="deliveryText">-</span>
+                        <span id="deliveryFee">R0.00</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Detergent:</span>
+                        <span id="detergentText">-</span>
+                        <span id="detergentFee">R0.00</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Extras:</span>
+                        <span id="extrasTotal">R0.00</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Weight (<span id="displayWeight">5</span> kg):</span>
+                        <span id="weightFee">R0.00</span>
+                    </div>
+                    <hr />
+                    <div class="summary-item">
+                        <span>Subtotal:</span>
+                        <span id="subtotal">R0.00</span>
+                    </div>
+                    <div class="summary-item text-success" id="discountRow" style="display: none;">
+                        <span>Discount (<span id="discountPercent">0</span>%):</span>
+                        <span id="discountAmount">-R0.00</span>
+                    </div>
+                    <div class="summary-item text-info" id="freeDeliveryRow" style="display: none;">
+                        <span>Free Delivery Applied:</span>
+                        <span id="freeDeliverySavings">-R0.00</span>
+                    </div>
+                    <hr />
+                    <div class="summary-item fw-bold">
+                        <span>Total:</span>
+                        <span class="text-primary fs-4" id="total">R0.00</span>
+                    </div>
+                </div>
+
+                <div class="mt-3" id="upgradePrompt" style="display: none;">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-crown"></i>
+                        <small>Upgrade to Premium or Business for more discounts and free deliveries!</small>
+                        <a href="/Subscription/Upgrade" class="btn btn-sm btn-warning mt-2 w-100">Upgrade Now</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .service-card, .extra-card, .payment-card {
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: 2px solid #e9ecef;
+    }
+
+        .service-card:hover, .extra-card:hover, .payment-card:hover {
+            border-color: var(--teal);
+            transform: translateY(-3px);
+        }
+
+        .service-card.selected, .payment-card.selected {
+            border-color: var(--teal);
+            background: rgba(42,157,143,0.05);
+        }
+
+        .extra-card.selected {
+            border-color: var(--teal);
+            background: rgba(42,157,143,0.1);
+        }
+
+        .service-card.disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+    .summary-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+    }
+
+    .subscription-info {
+        background: linear-gradient(135deg, #2A9D8F 0%, #1E6B61 100%);
+        color: white;
+        padding: 15px;
+        border-radius: 16px;
+    }
+
+    .form-container {
+        background: white;
+        border-radius: 24px;
+        padding: 30px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+    }
+
+    .sticky-top {
+        position: sticky;
+        top: 20px;
+    }
+
+    .service-checkbox {
+        cursor: pointer;
+    }
+</style>
+
+<script>
+    // Pass subscription data from server to JavaScript
+    window.subscriptionData = @Html.Raw(ViewBag.SubscriptionData);
+    window.currentTier = '@ViewBag.CurrentTier';
+</script>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="~/js/order-create.js"></script>

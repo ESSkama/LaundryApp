@@ -1,0 +1,227 @@
+﻿@model Laundry.Models.ViewModels.SubscriptionUpgradeViewModel
+@{
+    ViewData["Title"] = "Upgrade Subscription - SUDS & SPIN";
+    Layout = "~/Views/Shared/_CustomerLayout.cshtml";
+}
+
+<div class="container py-5">
+
+    @* ── Info banner: shown after cancellation or when redirected with no subscription ── *@
+    @if (TempData["Info"] != null)
+    {
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="alert alert-warning alert-dismissible fade show d-flex align-items-center gap-3" role="alert">
+                    <i class="fas fa-exclamation-triangle fa-lg flex-shrink-0"></i>
+                    <div>
+                        <strong>Subscription Required</strong><br />
+                        <span>@TempData["Info"]</span>
+                    </div>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="row">
+        <div class="col-12 text-center mb-5">
+            <i class="fas fa-crown fa-4x" style="color: var(--teal);"></i>
+            <h1 class="mt-3 fw-bold" style="color: var(--deep-navy);">Upgrade Your Plan</h1>
+            <p class="text-muted">Choose a plan that gives you more benefits</p>
+            @if (Model.CurrentTier.ToString() != "None")
+            {
+                <div class="alert alert-info d-inline-flex align-items-center gap-2">
+                    <i class="fas fa-info-circle"></i>
+                    <span>Current plan: <strong>@Model.CurrentTier</strong></span>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="row g-4 justify-content-center">
+        @foreach (var plan in Model.AvailablePlans)
+        {
+            var isCurrentPlan = plan.Tier == Model.CurrentTier;
+            var canUpgrade = plan.Tier > Model.CurrentTier;
+
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 pricing-card @(plan.IsPopular ? "popular" : "") @(isCurrentPlan ? "current-plan" : "")">
+                    @if (plan.IsPopular)
+                    {
+                        <div class="popular-badge">⭐ Most Popular</div>
+                    }
+                    @if (isCurrentPlan)
+                    {
+                        <div class="current-badge">✓ Current Plan</div>
+                    }
+                    <div class="card-body text-center p-4">
+                        <h3 class="fw-bold" style="color: var(--deep-navy);">@plan.Name</h3>
+                        <div class="price mt-3">
+                            <span class="display-4 fw-bold" style="color: var(--teal);">R@(plan.MonthlyPrice)</span>
+                            <small class="text-muted">/month</small>
+                        </div>
+                        <p class="text-muted small mt-2">Save @(plan.DiscountRate * 100)% on every order</p>
+
+                        <hr class="my-4">
+
+                        <ul class="text-start plan-features-list">
+                            <li>
+                                <i class="fas fa-percent text-success me-2"></i>
+                                <span>@(plan.DiscountRate * 100)% off all orders</span>
+                            </li>
+                            <li>
+                                <i class="fas fa-truck text-success me-2"></i>
+                                <span>@plan.FreeDeliveries free deliveries/month</span>
+                            </li>
+                            <li class="mt-2">
+                                <i class="fas fa-tshirt text-success me-2"></i>
+                                <span class="fw-semibold">Available Services:</span>
+                                <ul class="ms-4 mt-1">
+                                    @foreach (var service in plan.AvailableServices)
+                                    {
+                                        <li><small>✅ @service</small></li>
+                                    }
+                                </ul>
+                            </li>
+                        </ul>
+
+                        <div class="features-box mt-3 p-3 bg-light rounded">
+                            @foreach (var feature in plan.Features.Split('\n'))
+                            {
+                                if (!string.IsNullOrWhiteSpace(feature))
+                                {
+                                    <small class="d-block mb-1">✨ @feature.Trim()</small>
+                                }
+                            }
+                        </div>
+
+                        @if (!isCurrentPlan && canUpgrade)
+                        {
+                            <form method="post" asp-action="Upgrade" class="mt-4">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="newTier" value="@plan.Tier" />
+                                <button type="submit" class="btn btn-primary w-100 py-2 rounded-pill fw-semibold"
+                                        style="background: linear-gradient(135deg, var(--teal), var(--teal-dark)); border: none;">
+                                    <i class="fas fa-arrow-up me-2"></i> Upgrade to @plan.Name
+                                </button>
+                            </form>
+                        }
+                        else if (isCurrentPlan)
+                        {
+                            <button class="btn btn-secondary w-100 mt-4 py-2 rounded-pill" disabled>
+                                <i class="fas fa-check me-2"></i> Current Plan
+                            </button>
+                        }
+                        else if (!isCurrentPlan && !canUpgrade && Model.CurrentTier.ToString() == "None")
+                        {
+                            <form method="post" asp-action="Upgrade" class="mt-4">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="newTier" value="@plan.Tier" />
+                                <button type="submit" class="btn btn-primary w-100 py-2 rounded-pill fw-semibold"
+                                        style="background: linear-gradient(135deg, var(--teal), var(--teal-dark)); border: none;">
+                                    <i class="fas fa-crown me-2"></i> Choose @plan.Name
+                                </button>
+                            </form>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Business Hours Notice -->
+    <div class="row mt-4">
+        <div class="col-12 text-center">
+            <div class="alert alert-warning d-inline-flex align-items-center gap-2">
+                <i class="fas fa-clock me-2"></i>
+                <small>Customer support available: Monday - Saturday, 8am - 5pm (Closed Sundays)</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Prorated Upgrade Explanation -->
+    <div class="row mt-4">
+        <div class="col-md-8 col-lg-6 mx-auto">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-body p-4">
+                    <h5 class="text-center fw-bold mb-3">💡 How Upgrades Work</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> Upgrade takes effect immediately</li>
+                        <li class="mb-2"><i class="fas fa-calculator text-success me-2"></i> You only pay the prorated difference for remaining days</li>
+                        <li class="mb-2"><i class="fas fa-credit-card text-success me-2"></i> Current plan credit is applied toward upgrade</li>
+                        <li class="mb-2"><i class="fas fa-chart-line text-success me-2"></i> Full price on next billing cycle</li>
+                    </ul>
+                    <hr>
+                    <small class="text-muted text-center d-block">
+                        Example: Upgrade halfway through month from R49 to R99 plan → Pay only ~R25 for upgrade
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<style>
+    .pricing-card {
+        position: relative;
+        transition: all 0.3s ease;
+        border: 2px solid #e9ecef;
+        border-radius: 24px;
+        overflow: hidden;
+        background: white;
+    }
+
+        .pricing-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        .pricing-card.popular {
+            border-color: var(--teal);
+            box-shadow: 0 10px 30px rgba(42,157,143,0.15);
+        }
+
+        .pricing-card.current-plan {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            opacity: 0.9;
+        }
+
+    .popular-badge, .current-badge {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        padding: 5px 15px;
+        border-radius: 50px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        z-index: 1;
+    }
+
+    .popular-badge {
+        background: var(--teal);
+        color: white;
+    }
+
+    .current-badge {
+        background: #6c757d;
+        color: white;
+    }
+
+    .plan-features-list {
+        list-style: none;
+        padding-left: 0;
+    }
+
+        .plan-features-list li {
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+        }
+
+    .features-box {
+        font-size: 0.8rem;
+        color: #6c757d;
+        text-align: left;
+    }
+</style>

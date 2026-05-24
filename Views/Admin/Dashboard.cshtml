@@ -1,0 +1,297 @@
+﻿@model List<Laundry.Models.Order>
+@{
+    ViewData["Title"] = "Admin Dashboard - SUDS & SPIN";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+
+    var totalOrders = ViewBag.TotalOrders ?? 0;
+    var pendingOrders = ViewBag.PendingOrders ?? 0;
+    var totalCustomers = ViewBag.TotalCustomers ?? 0;
+    var totalRevenue = ViewBag.TotalRevenue ?? 0m;
+    var todayOrders = ViewBag.TodayOrders ?? 0;
+    var monthlyRevenue = ViewBag.MonthlyRevenue ?? 0m;
+    var pendingEftPayments = ViewBag.PendingEftPayments ?? 0;
+}
+
+<div class="admin-dashboard">
+    <!-- Action Alerts -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show mb-4 border-0 shadow-sm rounded-3" role="alert">
+            <i class="fas fa-check-circle me-2"></i>
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="stat-value">@totalOrders</div>
+                        <div class="stat-label">Total Orders</div>
+                    </div>
+                    <div class="stat-icon bg-primary bg-opacity-10 rounded-3 p-3">
+                        <i class="fas fa-box fa-2x text-primary"></i>
+                    </div>
+                </div>
+                <small class="text-muted mt-2 d-block">+@todayOrders today</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="stat-value">@pendingOrders</div>
+                        <div class="stat-label">Pending Orders</div>
+                    </div>
+                    <div class="stat-icon bg-warning bg-opacity-10 rounded-3 p-3">
+                        <i class="fas fa-clock fa-2x text-warning"></i>
+                    </div>
+                </div>
+                <small class="text-muted mt-2 d-block">Needs attention</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="stat-value">@totalCustomers</div>
+                        <div class="stat-label">Active Customers</div>
+                    </div>
+                    <div class="stat-icon bg-success bg-opacity-10 rounded-3 p-3">
+                        <i class="fas fa-users fa-2x text-success"></i>
+                    </div>
+                </div>
+                <small class="text-muted mt-2 d-block">Registered users</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="stat-value">@totalRevenue.ToString("C0")</div>
+                        <div class="stat-label">Total Revenue</div>
+                    </div>
+                    <div class="stat-icon bg-info bg-opacity-10 rounded-3 p-3">
+                        <i class="fas fa-coins fa-2x text-info"></i>
+                    </div>
+                </div>
+                <small class="text-muted mt-2 d-block">@monthlyRevenue.ToString("C0") this month</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- EFT Payment Alert -->
+    @if (pendingEftPayments > 0)
+    {
+        <div class="alert alert-warning alert-dismissible fade show mb-4 border-0 shadow-sm rounded-3" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <strong>Attention!</strong> There are @pendingEftPayments pending EFT payments awaiting confirmation.
+            <a href="/Admin/PendingPayments" class="alert-link ms-2">View payments →</a>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Recent Orders -->
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-header bg-white border-0 pt-4 px-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0">Recent Orders Queue</h5>
+                <a href="/Admin/ManageOrders" class="btn btn-sm btn-outline-primary rounded-pill px-3">View All</a>
+            </div>
+        </div>
+        <div class="card-body p-4">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Customer</th>
+                            <th>Tier Plan</th>
+                            <th>Assignments</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var order in Model)
+                        {
+                            // Formats long alphanumeric codes or database primary IDs into readable strings like #0042
+                            var clearOrderId = order.OrderId.ToString().PadLeft(4, '0');
+                            
+                            <tr>
+                                <td><span class="text-secondary fw-bold">#@clearOrderId</span></td>
+                                <td>
+                                    <div class="fw-semibold text-dark">@(order.User?.FullName ?? "Walk-in Customer")</div>
+                                    <small class="text-muted d-block" style="font-size: 0.75rem;">@order.User?.PhoneNumber</small>
+                                </td>
+                                <td>
+                                    @{
+                                        var tierBadge = order.PackageTier.ToLower() switch
+                                        {
+                                            "premium" => "bg-primary bg-opacity-10 text-primary border border-primary border-opacity-10",
+                                            "business" or "corporate" => "bg-info bg-opacity-10 text-info border border-info border-opacity-10",
+                                            _ => "bg-light text-dark border"
+                                        };
+                                    }
+                                    <span class="badge @tierBadge rounded-2 px-2.5 py-1.5">@order.PackageTier</span>
+                                </td>
+                                <td>
+                                    <!-- Interactive Operational Assignments -->
+                                    <div class="mb-1.5">
+                                        <i class="fas fa-truck text-muted me-1.5" style="width: 14px;"></i>
+                                        @if (order.AssignedDriverId.HasValue)
+                                        {
+                                            <span class="text-dark fw-medium small">@order.DriverName</span>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn btn-link p-0 text-primary text-decoration-none small" style="font-size: 0.8rem;" data-bs-toggle="modal" data-bs-target="#driverModal-@order.OrderId">
+                                                + Assign Pickup Driver
+                                            </button>
+                                        }
+                                    </div>
+                                    <div>
+                                        <i class="fas fa-female text-muted me-1.5" style="width: 14px;"></i>
+                                        @if (order.AssignedStaffId.HasValue)
+                                        {
+                                            <span class="text-dark fw-medium small">@order.AssignedStaffName</span>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn btn-link p-0 text-secondary text-decoration-none small" style="font-size: 0.8rem;" data-bs-toggle="modal" data-bs-target="#staffModal-@order.OrderId">
+                                                + Assign Care Staff
+                                            </button>
+                                        }
+                                    </div>
+                                </td>
+                                <td><span class="fw-bold text-dark">@order.TotalAmount.ToString("C")</span></td>
+                                <td>
+                                    @{
+                                        var statusClass = order.Status switch
+                                        {
+                                            Laundry.Models.OrderStatus.PaymentConfirmed => "bg-success bg-opacity-10 text-success border border-success border-opacity-20",
+                                            Laundry.Models.OrderStatus.PickupAssigned => "bg-primary bg-opacity-10 text-primary border border-primary border-opacity-20",
+                                            Laundry.Models.OrderStatus.DriverEnRoute => "bg-info bg-opacity-10 text-info border border-info border-opacity-20",
+                                            Laundry.Models.OrderStatus.PickedUp => "bg-warning bg-opacity-10 text-warning border border-warning border-opacity-20",
+                                            Laundry.Models.OrderStatus.WashingInProgress => "bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-20",
+                                            Laundry.Models.OrderStatus.OutForDelivery => "bg-info bg-opacity-10 text-info border border-info border-opacity-20",
+                                            Laundry.Models.OrderStatus.Delivered => "bg-success bg-opacity-10 text-success border border-success border-opacity-20",
+                                            _ => "bg-light text-muted border"
+                                        };
+                                    }
+                                    <span class="badge @statusClass rounded-pill px-2.5 py-1.5">@order.Status</span>
+                                </td>
+                                <td class="text-center">
+                                    <div class="btn-group rounded-3 shadow-sm" style="overflow: hidden;">
+                                        <a href="/Admin/OrderDetails/@order.OrderId" class="btn btn-sm btn-light border-end" title="Full Breakdown View">
+                                            <i class="fas fa-eye text-info"></i>
+                                        </a>
+                                        <a href="/Admin/UpdateOrderStatus/@order.OrderId" class="btn btn-sm btn-light" title="Override Lifecycle Status">
+                                            <i class="fas fa-edit text-primary"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <!-- Driver Allocation Popover -->
+                            <div class="modal fade" id="driverModal-@order.OrderId" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered modal-sm">
+                                    <div class="modal-content border-0 shadow rounded-4">
+                                        <form asp-action="AssignDriver" method="post">
+                                            <input type="hidden" name="orderId" value="@order.OrderId" />
+                                            <div class="modal-header border-0 pt-4 px-4 pb-1">
+                                                <h6 class="modal-title fw-bold text-dark">Dispatch Order #@clearOrderId</h6>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" style="font-size: 0.75rem;"></button>
+                                            </div>
+                                            <div class="modal-body px-4 py-2">
+                                                <div class="mb-2">
+                                                    <label class="form-label small fw-bold text-muted mb-1">Select Collection Driver</label>
+                                                    <select class="form-select form-select-sm rounded-3" name="driverId" required>
+                                                        <option value="">-- Choose Driver --</option>
+                                                        @if (ViewBag.DbDrivers != null)
+                                                        {
+                                                            foreach (var d in (List<Laundry.Models.User>)ViewBag.DbDrivers)
+                                                            {
+                                                                <option value="@d.UserId">@d.FullName</option>
+                                                            }
+                                                        }
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer border-0 pb-4 px-4 pt-1">
+                                                <button type="submit" class="btn btn-primary btn-sm rounded-pill w-100">Confirm Logistics</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Staff Allocation Popover -->
+                            <div class="modal fade" id="staffModal-@order.OrderId" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered modal-sm">
+                                    <div class="modal-content border-0 shadow rounded-4">
+                                        <form asp-action="AssignStaff" method="post">
+                                            <input type="hidden" name="orderId" value="@order.OrderId" />
+                                            <div class="modal-header border-0 pt-4 px-4 pb-1">
+                                                <h6 class="modal-title fw-bold text-dark">Care Operator Allocation</h6>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" style="font-size: 0.75rem;"></button>
+                                            </div>
+                                            <div class="modal-body px-4 py-2">
+                                                <div class="mb-2">
+                                                    <label class="form-label small fw-bold text-muted mb-1">Assign Responsible Staff</label>
+                                                    <select class="form-select form-select-sm rounded-3" name="staffId" required>
+                                                        <option value="">-- Choose Operator --</option>
+                                                        @if (ViewBag.DbStaff != null)
+                                                        {
+                                                            foreach (var s in (List<Laundry.Models.User>)ViewBag.DbStaff)
+                                                            {
+                                                                <option value="@s.UserId">@s.FullName</option>
+                                                            }
+                                                        }
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer border-0 pb-4 px-4 pt-1">
+                                                <button type="submit" class="btn btn-secondary btn-sm rounded-pill w-100">Assign to Production</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .stat-card {
+        background: white;
+        border-radius: 20px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    }
+
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--deep-navy);
+    }
+
+    .stat-label {
+        color: var(--text-soft);
+        font-size: 0.85rem;
+    }
+</style>

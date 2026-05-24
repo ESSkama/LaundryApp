@@ -1,0 +1,161 @@
+﻿@model List<Laundry.Controllers.DriverInfo>
+@{
+    ViewData["Title"] = "Manage Drivers - SUDS & SPIN";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="admin-drivers container-fluid py-4">
+    <!-- Header Block -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-dark mb-1">Transit Dispatch Fleet</h2>
+            <p class="text-muted small mb-0">Monitor operational transit capacities, active delivery states, and vehicle assets.</p>
+        </div>
+        <button class="btn btn-primary rounded-pill px-4 shadow-sm btn-sm" data-bs-toggle="modal" data-bs-target="#addDriverModal">
+            <i class="fas fa-plus me-1.5"></i> Add New Driver
+        </button>
+    </div>
+
+    <!-- Alert Notifications -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success border-0 shadow-sm rounded-3 mb-4 alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger border-0 shadow-sm rounded-3 mb-4 alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i> @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Drivers Table Structure -->
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-body p-4">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Driver Operator Name</th>
+                            <th>Mobile Contact</th>
+                            <th>Transit State</th>
+                            <th class="text-center">Live Active Loads</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            foreach (var driver in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold text-dark">@driver.Name</div>
+                                        <small class="text-muted d-block" style="font-size: 0.75rem;">System ID: EMP-@driver.Id.ToString().PadLeft(3, '0')</small>
+                                    </td>
+                                    <td><span class="text-secondary fw-medium">@driver.Phone</span></td>
+                                    <td>
+                                        @{
+                                            var statusClass = driver.Status switch
+                                            {
+                                                "Available" => "bg-success bg-opacity-10 text-success border border-success border-opacity-20",
+                                                "On Delivery" => "bg-warning bg-opacity-10 text-warning border border-warning border-opacity-20",
+                                                "On Break" => "bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-20",
+                                                _ => "bg-light text-muted border"
+                                            };
+                                        }
+                                        <span class="badge @statusClass px-2.5 py-1.5 rounded-2">@driver.Status</span>
+                                    </td>
+                                    <td class="text-center">
+                                        @if (driver.CurrentOrders > 0)
+                                        {
+                                            <span class="badge bg-dark rounded-circle px-2 py-1.5" style="min-width: 24px;">@driver.CurrentOrders</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted small">-</span>
+                                        }
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="btn-group rounded-3 shadow-sm" style="overflow: hidden;">
+                                            <a href="/Admin/Dashboard" class="btn btn-sm btn-light border-end text-primary fw-medium" style="font-size: 0.8rem;">
+                                                <i class="fas fa-truck me-1"></i> Go Route
+                                            </a>
+                                            <button class="btn btn-sm btn-light text-secondary" title="Edit Profile Details" onclick="alert('Profile updates are managed through the central User Accounts management panel.')">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="5" class="text-center py-4 text-muted small">No logistics couriers are currently registered in the database.</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Driver Modal Dialog Component -->
+<div class="modal fade" id="addDriverModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow rounded-4">
+            <form asp-action="CreateDriver" method="post">
+                <div class="modal-header border-0 pt-4 px-4 pb-1">
+                    <h5 class="modal-title fw-bold text-dark">Register Fleet Courier</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" style="font-size: 0.8rem;"></button>
+                </div>
+                <div class="modal-body px-4">
+                    <p class="text-muted small mb-3">Adding a driver inserts a real user record populated with logistics and vehicle tracking credentials natively.</p>
+                    
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-secondary mb-1">Full Legal Name</label>
+                            <input type="text" name="fullName" class="form-control form-control-sm rounded-3" placeholder="e.g. John Mkhize" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-secondary mb-1">National ID Number</label>
+                            <input type="text" name="identityNumber" class="form-control form-control-sm rounded-3" placeholder="ID Card Number" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-secondary mb-1">Mobile Phone Number</label>
+                            <input type="tel" name="phone" class="form-control form-control-sm rounded-3" placeholder="e.g. 0821234567" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-secondary mb-1">Email (System Login)</label>
+                            <input type="email" name="email" class="form-control form-control-sm rounded-3" placeholder="username@freshdrop.com" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-secondary mb-1">Unique Username</label>
+                            <input type="text" name="username" class="form-control form-control-sm rounded-3" placeholder="j.mkhize" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-secondary mb-1">Vehicle Plate Number</label>
+                            <input type="text" name="vehiclePlate" class="form-control form-control-sm rounded-3" placeholder="e.g. EC 491-992" required />
+                        </div>
+                    </div>
+
+                    <div class="mt-3 p-2.5 bg-light rounded-3 border">
+                        <small class="text-muted d-block" style="font-size: 0.72rem; line-height: 1.3;">
+                            <i class="fas fa-info-circle text-primary me-1"></i> 
+                            <strong>Default Credentials Issued:</strong> Newly generated profiles use the security key <code>Driver@@Launch123</code>. Employees are forced to personalize this configuration on their first portal session.
+                        </small>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pb-4 pt-3 px-4">
+                    <button type="button" class="btn btn-light rounded-pill px-3 btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4 btn-sm shadow-sm">Save to Database</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

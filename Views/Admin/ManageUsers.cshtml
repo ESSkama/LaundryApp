@@ -1,0 +1,93 @@
+﻿@model List<Laundry.Models.User>
+@{
+    ViewData["Title"] = "Customer Accounts Registry";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="admin-dashboard p-1">
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success border-0 shadow-sm rounded-3 mb-4 alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-header bg-white border-0 pt-4 px-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0">Registered Customer Database</h5>
+                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-10 px-2.5 py-1.5 rounded-2 small fw-medium">
+                    Total Clients: @Model.Count
+                </span>
+            </div>
+        </div>
+        <div class="card-body p-4">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Customer Profile Name</th>
+                            <th>Contact Email</th>
+                            <th>Subscription Tier</th>
+                            <th class="text-center">Total Requests</th>
+                            <th>Account Status</th>
+                            <th class="text-end" style="width: 220px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            foreach (var customer in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold text-dark">@customer.FullName</div>
+                                        <small class="text-muted font-monospace" style="font-size: 0.72rem;">@customer.PhoneNumber</small>
+                                    </td>
+                                    <td><span class="text-secondary small font-monospace">@customer.Email</span></td>
+                                    <td>
+    <span class="badge bg-dark bg-opacity-10 text-dark border rounded-2 px-2.5 py-1.5 small text-uppercase">
+        @(customer.Subscription != null && customer.Subscription.Tier != Laundry.Models.SubscriptionTier.None 
+            ? customer.Subscription.Tier.ToString() 
+            : "No Tier Active")
+    </span>
+</td>
+                                    <td class="text-center">
+                                        <span class="fw-bold text-secondary">@(customer.Orders?.Count ?? 0)</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge @(customer.IsActive ? "bg-success bg-opacity-10 text-success border border-success border-opacity-20" : "bg-danger bg-opacity-10 text-danger border border-danger border-opacity-20") rounded-pill px-2.5 py-1">
+                                            @(customer.IsActive ? "Active" : "Suspended")
+                                        </span>
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="d-flex justify-content-end gap-1.5">
+                                            <a href="/Admin/UserHistory/@customer.UserId" class="btn btn-sm btn-light border text-primary fw-medium rounded-pill px-3" style="font-size: 0.78rem;">
+                                                <i class="fas fa-history me-1"></i> History
+                                            </a>
+
+                                            <form asp-action="ToggleUserStatus" method="post" class="m-0">
+                                                <input type="hidden" name="userId" value="@customer.UserId" />
+                                                <input type="hidden" name="isActive" value="@((!customer.IsActive).ToString().ToLower())" />
+                                                <button type="submit" class="btn btn-sm @(customer.IsActive ? "btn-outline-danger" : "btn-outline-success") rounded-pill px-2.5" style="font-size: 0.78rem;" title="Modify Security Access Permissions">
+                                                    <i class="fas @(customer.IsActive ? "fa-user-slash" : "fa-user-check")"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="6" class="text-center py-4 text-muted small">No verified customer accounts exist in the current database.</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

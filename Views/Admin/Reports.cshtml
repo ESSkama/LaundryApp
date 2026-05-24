@@ -1,0 +1,107 @@
+﻿@{
+    ViewData["Title"] = "Reports";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    var monthlyRevenue = ViewBag.MonthlyRevenue as List<Laundry.Controllers.MonthlyReport> ?? new List<Laundry.Controllers.MonthlyReport>();
+    var servicePopularity = ViewBag.ServicePopularity as List<Laundry.Controllers.ServiceReport> ?? new List<Laundry.Controllers.ServiceReport>();
+}
+
+<div class="admin-reports">
+    <h1 class="fw-bold mb-4">Reports & Analytics</h1>
+
+    <div class="row">
+        <div class="col-lg-8 mb-4">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white border-0 pt-4 px-4">
+                    <h5 class="fw-bold mb-0">Monthly Revenue</h5>
+                </div>
+                <div class="card-body p-4">
+                    <canvas id="revenueChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 mb-4">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white border-0 pt-4 px-4">
+                    <h5 class="fw-bold mb-0">Service Popularity</h5>
+                </div>
+                <div class="card-body p-4">
+                    <canvas id="serviceChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-header bg-white border-0 pt-4 px-4">
+            <h5 class="fw-bold mb-0">Monthly Breakdown</h5>
+        </div>
+        <div class="card-body p-4">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Month</th>
+                            <th>Orders</th>
+                            <th>Revenue</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var report in monthlyRevenue)
+                        {
+                            <tr>
+                                <td><strong>@report.MonthName</strong></td>
+                                <td>@report.OrderCount</td>
+                                <td>@report.Revenue.ToString("C")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Revenue Chart
+    const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+    new Chart(revenueCtx, {
+        type: 'line',
+        data: {
+            labels: [@Html.Raw(string.Join(",", monthlyRevenue.Select(r => $"'{r.MonthName}'")))],
+            datasets: [{
+                label: 'Revenue',
+                data: [@string.Join(",", monthlyRevenue.Select(r => r.Revenue))],
+                borderColor: '#2A9D8F',
+                backgroundColor: 'rgba(42,157,143,0.1)',
+                tension: 0.3,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'top' }
+            }
+        }
+    });
+
+    // Service Popularity Chart
+    const serviceCtx = document.getElementById('serviceChart').getContext('2d');
+    new Chart(serviceCtx, {
+        type: 'doughnut',
+        data: {
+            labels: [@Html.Raw(string.Join(",", servicePopularity.Select(s => $"'{s.ServiceName}'")))],
+            datasets: [{
+                data: [@string.Join(",", servicePopularity.Select(s => s.Count))],
+                backgroundColor: ['#2A9D8F', '#E9C46A', '#E76F51', '#264653', '#5EC4B6']
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+</script>

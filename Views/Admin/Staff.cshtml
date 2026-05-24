@@ -1,0 +1,46 @@
+﻿@model List<Laundry.Controllers.StaffInfo>
+@{
+    ViewData["Title"] = "Laundry Staff";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="admin-staff">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="fw-bold">Laundry Staff</h1>
+        <button class="btn btn-primary rounded-pill" data-bs-toggle="modal" data-bs-target="#addStaffModal">
+            <i class="fas fa-plus"></i> Add Staff
+        </button>
+    </div>
+
+    <div class="row g-4">
+        @foreach (var staff in Model)
+        {
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm rounded-4">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <div class="bg-primary bg-opacity-10 rounded-circle p-3">
+                                <i class="fas fa-user-tie fa-2x text-primary"></i>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold mb-0">@staff.Name</h5>
+                                <small class="text-muted">@staff.Role</small>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <span class="badge @(staff.Status == "Working" ? "bg-success" : "bg-secondary")">@staff.Status</span>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm btn-outline-primary" onclick="alert('Assign order to staff')">
+                                <i class="fas fa-clipboard-list"></i> Assign Order
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>

@@ -1,0 +1,222 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - SUDS & SPIN Driver Portal</title>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap + Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <style>
+        :root {
+            --teal: #2A9D8F;
+            --teal-dark: #1E6B61;
+            --deep-navy: #264653;
+            --text-dark: #3D4452;
+            --text-soft: #6B7280;
+            --white: #FFFFFF;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f0f2f5;
+            color: var(--text-dark);
+        }
+
+        .admin-wrapper {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Driver Customized Sidebar Workspace */
+        .admin-sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, var(--deep-navy) 0%, #1a3a4a 100%);
+            color: white;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            transition: all 0.3s;
+            z-index: 100;
+        }
+
+        .admin-sidebar .brand {
+            padding: 24px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 24px;
+        }
+
+        .admin-sidebar .brand .brand-icon {
+            width: 50px;
+            height: 50px;
+            background: var(--teal);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 12px;
+        }
+
+        .admin-sidebar .brand h3 {
+            font-size: 1.2rem;
+            margin-bottom: 0;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .admin-sidebar .nav-link {
+            color: rgba(255,255,255,0.8);
+            padding: 14px 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.3s;
+            font-weight: 500;
+            text-decoration: none;
+        }
+
+        .admin-sidebar .nav-link:hover,
+        .admin-sidebar .nav-link.active {
+            background: rgba(42,157,143,0.15);
+            color: white;
+            border-left: 4px solid var(--teal);
+        }
+
+        .admin-sidebar .nav-link i {
+            width: 20px;
+            font-size: 1.1rem;
+        }
+
+        /* View Content Area Allocation */
+        .admin-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 24px;
+            min-width: 0;
+        }
+
+        .admin-top-bar {
+            background: white;
+            padding: 16px 24px;
+            border-radius: 16px;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+            transition: transform 0.2s, box-shadow 0.2s;
+            background: white;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+        }
+
+        .stat-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+        }
+
+        .stat-label {
+            color: var(--text-soft);
+            font-size: 0.85rem;
+        }
+
+        @@media (max-width: 768px) {
+            .admin-sidebar {
+                width: 70px;
+            }
+            .admin-sidebar .brand h3,
+            .admin-sidebar .brand small,
+            .admin-sidebar .nav-link span,
+            .admin-sidebar .brand .brand-icon {
+                display: none;
+            }
+            .admin-sidebar .brand {
+                padding: 15px 0;
+                margin-bottom: 10px;
+            }
+            .admin-sidebar .nav-link {
+                justify-content: center;
+                padding: 15px 0;
+            }
+            .admin-content {
+                margin-left: 70px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-wrapper">
+        <!-- DRIVER WORKSPACE SIDEBAR -->
+        <div class="admin-sidebar">
+            <div class="brand">
+                <div class="brand-icon">
+                    <i class="fas fa-truck fa-lg"></i>
+                </div>
+                <h3>SUDS & SPIN</h3>
+                <small class="text-white opacity-60 text-uppercase tracking-wider font-monospace" style="font-size: 0.65rem;">Transit Hub</small>
+            </div>
+            <nav class="nav flex-column">
+                <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "Index" ? "active" : "")" href="/Driver/Index">
+                    <i class="fas fa-route"></i> <span>Active Manifest</span>
+                </a>
+                <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "Profile" ? "active" : "")" href="/Driver/Profile">
+        <i class="fas fa-user-cog"></i> <span>My Profile Settings</span>
+    </a>
+                <!-- Expanded placeholder links for when your driver functionality grows -->
+                <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "History" ? "active" : "")" href="#" onclick="alert('Trip history logging is rolling out natively in Phase 2 optimization.')">
+                    <i class="fas fa-history"></i> <span>Completed Runs</span>
+                </a>
+
+                <hr class="my-3" style="border-color: rgba(255,255,255,0.1); margin: 0 20px;">
+                
+                <a class="nav-link text-danger mt-auto" href="#" onclick="document.getElementById('driverLogoutForm').submit();">
+                    <i class="fas fa-sign-out-alt"></i> <span>Go Off-Duty</span>
+                </a>
+            </nav>
+        </div>
+
+        <!-- MAIN WINDOW VIEW DISPLAY -->
+        <div class="admin-content">
+            <div class="admin-top-bar">
+                <div>
+                    <h4 class="fw-bold mb-0 text-dark">@ViewData["Title"]</h4>
+                    <small class="text-muted">@DateTime.Now.ToString("dddd, dd MMMM yyyy")</small>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <div class="bg-light rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                        <i class="fas fa-user-shield text-secondary"></i>
+                    </div>
+                    <div>
+                        <span class="fw-semibold text-dark d-block" style="font-size: 0.9rem;">@User.Identity?.Name?.Split('@')[0]</span>
+                        <small class="text-success fw-bold d-block font-monospace" style="font-size: 0.72rem; line-height: 1;">● Courier Mode</small>
+                    </div>
+                </div>
+            </div>
+
+            @RenderBody()
+        </div>
+    </div>
+
+    <form id="driverLogoutForm" action="/Account/Logout" method="post" style="display:none;"></form>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

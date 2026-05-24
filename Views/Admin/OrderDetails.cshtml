@@ -1,0 +1,326 @@
+﻿@model Laundry.Models.Order
+@{
+    ViewData["Title"] = $"Order Details #{Model.OrderId.ToString().PadLeft(4, '0')} - SUDS & SPIN";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    
+    var clearOrderId = Model.OrderId.ToString().PadLeft(4, '0');
+}
+
+<div class="container-fluid py-4">
+    <!-- Action and Success Feedback Alerts -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show mb-4 border-0 shadow-sm rounded-3" role="alert">
+            <i class="fas fa-check-circle me-2"></i>
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Back Header Area -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <a href="/Admin/Dashboard" class="btn btn-sm btn-link text-decoration-none p-0 text-secondary mb-1">
+                <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+            </a>
+            <h3 class="fw-bold text-dark mb-0">Order Specification Record #@clearOrderId</h3>
+            <small class="text-muted">Logged on @Model.OrderDate.ToString("f")</small>
+        </div>
+        <div>
+            @{
+                var statusClass = Model.Status switch
+                {
+                    Laundry.Models.OrderStatus.PaymentConfirmed => "bg-success bg-opacity-10 text-success border border-success border-opacity-20",
+                    Laundry.Models.OrderStatus.PickupAssigned => "bg-primary bg-opacity-10 text-primary border border-primary border-opacity-20",
+                    Laundry.Models.OrderStatus.DriverEnRoute => "bg-info bg-opacity-10 text-info border border-info border-opacity-20",
+                    Laundry.Models.OrderStatus.PickedUp => "bg-warning bg-opacity-10 text-warning border border-warning border-opacity-20",
+                    Laundry.Models.OrderStatus.WashingInProgress => "bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-20",
+                    Laundry.Models.OrderStatus.Completed => "bg-success text-white",
+                    Laundry.Models.OrderStatus.OutForDelivery => "bg-info text-white",
+                    Laundry.Models.OrderStatus.Delivered => "bg-success text-white",
+                    Laundry.Models.OrderStatus.Cancelled => "bg-danger bg-opacity-10 text-danger border border-danger border-opacity-20",
+                    _ => "bg-light text-dark border"
+                };
+            }
+            <span class="badge @statusClass px-3 py-2 rounded-3 fs-6">@Model.Status</span>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- LEFT COLUMN: Pattern Parameter Spec Sheets & Fulfillment Data -->
+        <div class="col-lg-8">
+            
+            <!-- Pattern Layer Components Card -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-white border-0 pt-4 px-4">
+                    <h5 class="fw-bold text-dark mb-0"><i class="fas fa-layer-group text-primary me-2"></i>Design Pattern Context Spec</h5>
+                    <p class="text-muted small mb-0">This card shows how your assignment patterns initialized and built this order instance.</p>
+                </div>
+                <div class="card-body px-4 pb-4">
+                    <div class="row g-3">
+                        
+                        <!-- Factory Method Selection -->
+                        <div class="col-md-6">
+                            <div class="p-3 border rounded-3 bg-light bg-opacity-50 h-100">
+                                <small class="text-muted fw-bold uppercase d-block mb-1" style="font-size: 0.75rem; letter-spacing: 0.5px;">1. FACTORY METHOD PATTERN</small>
+                                <span class="fw-bold text-dark d-block mb-1">@Model.ServiceType</span>
+                                <small class="text-secondary">Core Service Object instantiation via concrete method factory overrides.</small>
+                            </div>
+                        </div>
+
+                        <!-- Abstract Factory Selection -->
+                        <div class="col-md-6">
+                            <div class="p-3 border rounded-3 bg-light bg-opacity-50 h-100">
+                                <small class="text-muted fw-bold uppercase d-block mb-1" style="font-size: 0.75rem; letter-spacing: 0.5px;">2. ABSTRACT FACTORY PATTERN</small>
+                                <span class="badge bg-dark rounded-2 px-2 py-1 mb-1.5">@Model.PackageTier Tier Family</span>
+                                <div class="small text-secondary">
+                                    <div class="mb-0.5"><i class="fas fa-box-open fa-fw me-1"></i>Packaging: <strong>@Model.PackagingType</strong></div>
+                                    <div class="mb-0.5"><i class="fas fa-truck fa-fw me-1"></i>Delivery: <strong>@Model.DeliveryMethod</strong></div>
+                                    <div><i class="fas fa-flask fa-fw me-1"></i>Detergent/Care: <strong>@Model.DetergentType</strong></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Decorator Pattern Addons -->
+                        <div class="col-12">
+                            <div class="p-3 border rounded-3 bg-light bg-opacity-50">
+                                <small class="text-muted fw-bold uppercase d-block mb-1" style="font-size: 0.75rem; letter-spacing: 0.5px;">3. DECORATOR PATTERN (DYNAMIC ORDER CUSTOMIZATION)</small>
+                                @if (!string.IsNullOrEmpty(Model.SelectedExtras))
+                                {
+                                    <div class="d-flex flex-wrap gap-2 mt-1.5">
+                                        @foreach (var extra in Model.SelectedExtras.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                                        {
+                                            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-20 px-2.5 py-1.5 rounded-2 small">
+                                                <i class="fas fa-plus me-1 text-primary opacity-70"></i>@extra.Trim()
+                                            </span>
+                                        }
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="text-muted small d-block mt-1">No optional decorator runtime extras were added to this care package.</span>
+                                }
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- Logistics and Routing Execution Block -->
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white border-0 pt-4 px-4">
+                    <h5 class="fw-bold text-dark mb-0"><i class="fas fa-map-marked-alt text-secondary me-2"></i>Fulfillment & Service Mapping</h5>
+                </div>
+                <div class="card-body px-4 pb-4">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <h6 class="fw-bold text-secondary small uppercase mb-2">Collection Logistics</h6>
+                            <div class="mb-2">
+                                <small class="text-muted d-block">Pickup Address</small>
+                                <span class="text-dark fw-medium">@Model.PickupAddress</span>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block">Transit Driver Logistics</small>
+                                <span class="text-dark fw-bold"><i class="fas fa-truck text-muted me-1.5"></i>@(Model.DriverName ?? "Unassigned")</span>
+                                @if(!string.IsNullOrEmpty(Model.DriverPhone)){ <small class="text-muted d-block">@Model.DriverPhone</small> }
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="fw-bold text-secondary small uppercase mb-2">Production Logistics</h6>
+                            <div class="mb-2">
+                                <small class="text-muted d-block">Delivery Target Address</small>
+                                <span class="text-dark fw-medium">@Model.DeliveryAddress</span>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block">Responsible Care Operator</small>
+                                <span class="text-dark fw-bold"><i class="fas fa-female text-muted me-1.5"></i>@(Model.AssignedStaffName ?? "Unassigned")</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- RIGHT COLUMN: Workflow Console, Pricing Strategies & Customer Profile -->
+        <div class="col-lg-4">
+            
+            <!-- WORKFLOW LIFECYCLE ACTION MANAGEMENT CONSOLE -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4 border border-primary border-opacity-10">
+                <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
+                    <h6 class="fw-bold mb-0 text-uppercase text-primary tracking-wide" style="font-size: 0.75rem;">Logistics Command Unit</h6>
+                </div>
+                <div class="card-body p-4">
+                    
+                    @if (Model.Status == Laundry.Models.OrderStatus.PaymentConfirmed || Model.Status == Laundry.Models.OrderStatus.Pending)
+                    {
+                        <div class="text-center py-2">
+                            <div class="mb-3 text-primary"><i class="fas fa-truck-loading fa-2x animate-pulse"></i></div>
+                            <h6 class="fw-bold text-dark">Step 1: Assign Team Members</h6>
+                            <p class="text-muted small">This order is ready for production setup. Allocate a driver for the collection run and choose the plant care operator.</p>
+                            
+                            <form asp-action="AssignLogisticsAndProduction" method="post" class="text-start mt-3">
+                                <input type="hidden" name="orderId" value="@Model.OrderId" />
+                                
+                                <div class="mb-2">
+                                    <label class="form-label small fw-bold text-secondary mb-1">Collection Driver</label>
+                                    <select class="form-select form-select-sm rounded-3" name="driverId" required>
+                                        <option value="">-- Choose Driver --</option>
+                                        @foreach (var d in (List<Laundry.Models.User>)ViewBag.DbDrivers) {
+                                            <option value="@d.UserId">@d.FullName</option>
+                                        }
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold text-secondary mb-1">Plant Washer (Staff)</label>
+                                    <select class="form-select form-select-sm rounded-3" name="staffId" required>
+                                        <option value="">-- Choose Operator --</option>
+                                        @foreach (var s in (List<Laundry.Models.User>)ViewBag.DbStaff) {
+                                            <option value="@s.UserId">@s.FullName</option>
+                                        }
+                                    </select>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary btn-sm rounded-pill w-100 fw-medium shadow-sm">
+                                    Confirm Active Allocations
+                                </button>
+                            </form>
+                        </div>
+                    }
+                    else if (Model.Status == Laundry.Models.OrderStatus.PickupAssigned || Model.Status == Laundry.Models.OrderStatus.DriverEnRoute || Model.Status == Laundry.Models.OrderStatus.PickedUp || Model.Status == Laundry.Models.OrderStatus.AtLaundry || Model.Status == Laundry.Models.OrderStatus.WashingInProgress)
+                    {
+                        <div class="text-center py-2 bg-light rounded-3 border border-dashed p-3">
+                            <div class="spinner-border spinner-border-sm text-secondary mb-2" role="status"></div>
+                            <h6 class="fw-bold text-secondary small mb-1">Processing on Production Floor</h6>
+                            <p class="text-muted mb-3" style="font-size: 0.8rem;">
+                                Assigned Operator: <strong>@Model.AssignedStaffName</strong><br/>
+                                The order must be processed through cleaning and folding cycles.
+                            </p>
+
+                            <!-- Simulated Portal Button Hook to execute plant operator workflow steps -->
+                            <form asp-action="SimulateStaffCompletion" method="post">
+                                <input type="hidden" name="orderId" value="@Model.OrderId" />
+                                <button type="submit" class="btn btn-sm btn-outline-secondary rounded-pill w-100 bg-white shadow-sm" style="font-size: 0.75rem;">
+                                    <i class="fas fa-check-circle me-1 text-success"></i> Simulate Staff Portal "Mark Done"
+                                </button>
+                            </form>
+                        </div>
+                    }
+                    else if (Model.Status == Laundry.Models.OrderStatus.Completed || Model.Status == Laundry.Models.OrderStatus.ReadyForPickup)
+                    {
+                        <div class="text-center py-2">
+                            <div class="mb-3 text-success"><i class="fas fa-clipboard-check fa-2x"></i></div>
+                            <h6 class="fw-bold text-dark">Step 2: Assign Delivery Logistics</h6>
+                            <p class="text-muted small">Cleaning and quality control are complete! Assign a delivery driver to drop off the fresh laundry back to the client.</p>
+                            
+                            <form asp-action="DispatchForFinalDelivery" method="post" class="text-start mt-3">
+                                <input type="hidden" name="orderId" value="@Model.OrderId" />
+                                
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold text-secondary mb-1">Select Delivery Driver</label>
+                                    <select class="form-select form-select-sm rounded-3" name="deliveryDriverId" required>
+                                        <option value="">-- Choose Delivery Driver --</option>
+                                        @foreach (var d in (List<Laundry.Models.User>)ViewBag.DbDrivers) {
+                                            <option value="@d.UserId">@d.FullName</option>
+                                        }
+                                    </select>
+                                </div>
+
+                                <button type="submit" class="btn btn-success btn-sm rounded-pill w-100 fw-medium shadow-sm">
+                                    Dispatch for Final Delivery Run
+                                </button>
+                            </form>
+                        </div>
+                    }
+                    else if (Model.Status == Laundry.Models.OrderStatus.OutForDelivery)
+                    {
+                        <div class="p-3 bg-info bg-opacity-10 text-info border border-info border-opacity-20 rounded-3 text-center">
+                            <i class="fas fa-shipping-fast fa-lg mb-2"></i>
+                            <h6 class="fw-bold mb-1" style="font-size: 0.9rem;">Out with Transit Courier</h6>
+                            <small class="d-block text-secondary">Driver <strong>@Model.DriverName</strong> is currently en route to drop off the completed items at the client's home address.</small>
+                        </div>
+                    }
+                    else if (Model.Status == Laundry.Models.OrderStatus.Delivered)
+                    {
+                        <div class="p-3 bg-success bg-opacity-10 text-success border border-success border-opacity-20 rounded-3 text-center">
+                            <i class="fas fa-home fa-lg mb-2"></i>
+                            <h6 class="fw-bold mb-1" style="font-size: 0.9rem;">Lifecycle Completed</h6>
+                            <small class="d-block text-secondary">Delivered and logged into global historical indices natively.</small>
+                        </div>
+                    }
+
+                </div>
+            </div>
+
+            <!-- Pricing Strategy Card Block -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4" style="background-color: #fafbfc;">
+                <div class="card-header bg-transparent border-0 pt-4 px-4">
+                    <h5 class="fw-bold text-dark mb-0"><i class="fas fa-calculator text-success me-2"></i>Pricing Strategy</h5>
+                </div>
+                <div class="card-body px-4 pb-4">
+                    <div class="d-flex justify-content-between mb-2 pb-2 border-bottom border-dashed">
+                        <span class="text-muted">Base Laundry Rate</span>
+                        <span class="text-dark fw-medium">@Model.ServiceBasePrice.ToString("C")</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2 pb-2 border-bottom border-dashed">
+                        <span class="text-muted">Dynamic Addon Total</span>
+                        <span class="text-dark fw-medium">+ @Model.ExtrasTotal.ToString("C")</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2 pb-2 border-bottom border-dashed">
+                        <span class="text-muted">Weight Processing Total (@Model.WeightKg kg)</span>
+                        <span class="text-dark fw-medium">@Model.Subtotal.ToString("C")</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3 text-danger">
+                        <span>Strategy Discount Applied</span>
+                        <span>- @Model.DiscountAmount.ToString("C")</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center pt-2 border-top border-2">
+                        <span class="fw-bold text-dark fs-5">Final Total Amount</span>
+                        <span class="fw-bold text-primary fs-4">@Model.TotalAmount.ToString("C")</span>
+                    </div>
+
+                    <div class="mt-4 p-2.5 bg-white border rounded-3">
+                        <small class="text-muted d-block" style="font-size: 0.7rem; font-weight: 700;">STRATEGY PATTERN INJECTION RULE</small>
+                        <span class="text-dark small fw-bold"><i class="fas fa-credit-card me-1.5 text-muted"></i>@Model.PaymentMethod Strategy</span>
+                        @if(!string.IsNullOrEmpty(Model.PromoCodeUsed)) {
+                            <small class="text-success d-block mt-0.5">Promo applied: <strong>@Model.PromoCodeUsed</strong></small>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Customer Overview Profiler -->
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white border-0 pt-4 px-4">
+                    <h5 class="fw-bold text-dark mb-0"><i class="fas fa-user-circle text-muted me-2"></i>Customer Account</h5>
+                </div>
+                <div class="card-body px-4 pb-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-light rounded-circle p-2 text-center me-3" style="width: 45px; height: 45px;">
+                            <i class="fas fa-user text-secondary fa-lg mt-1"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-0 text-dark">@(Model.User?.FullName ?? "System Profile")</h6>
+                            <small class="text-muted">@Model.User?.Email</small>
+                        </div>
+                    </div>
+                    <div class="mb-2 small">
+                        <span class="text-muted">Contact Phone:</span> <span class="text-dark fw-medium">@Model.User?.PhoneNumber</span>
+                    </div>
+                    <div class="small">
+                        <span class="text-muted">Registered Address:</span> <span class="text-dark fw-medium d-block mt-0.5">@Model.User?.GetFullAddress()</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<style>
+    .border-dashed {
+        border-style: dashed !important;
+    }
+</style>

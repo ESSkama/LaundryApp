@@ -1,0 +1,436 @@
+﻿@model Laundry.Models.Order
+@{
+    ViewData["Title"] = $"Order #{Model?.OrderNumber} - SUDS & SPIN";
+    Layout = "~/Views/Shared/_CustomerLayout.cshtml";
+
+    // Parse services list from stored data (prevents duplication)
+    var servicesList = new List<string>();
+    if (!string.IsNullOrEmpty(Model.SelectedServices))
+    {
+        servicesList = Model.SelectedServices.Split(',').Select(s => s.Trim()).ToList();
+    }
+    else if (!string.IsNullOrEmpty(Model.ServiceType))
+    {
+        // Fallback for older orders
+        servicesList = Model.ServiceType.Split(',').Select(s => s.Trim()).ToList();
+    }
+
+    // Parse extras list
+    var extrasList = new List<string>();
+    if (!string.IsNullOrEmpty(Model.SelectedExtras))
+    {
+        extrasList = Model.SelectedExtras.Split(',').Select(e => e.Trim()).ToList();
+    }
+    else if (!string.IsNullOrEmpty(Model.Extras))
+    {
+        // Fallback for older orders
+        try
+        {
+            // Try to parse JSON extras
+            var jsonExtras = Newtonsoft.Json.JsonConvert.DeserializeObject<List<string>>(Model.Extras);
+            if (jsonExtras != null)
+                extrasList = jsonExtras;
+        }
+        catch
+        {
+            // If not JSON, treat as comma-separated
+            extrasList = Model.Extras.Split(',').Select(e => e.Trim()).ToList();
+        }
+    }
+
+    // Service names mapping for display
+    var serviceNames = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+    {
+        { "washonly", "Wash Only" },
+        { "washfold", "Wash & Fold" },
+        { "dryclean", "Dry Cleaning" },
+        { "ironing", "Ironing Service" },
+        { "express", "Express Same-Day" }
+    };
+
+    // Extra names mapping for display
+    var extraNames = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+    {
+        { "fabricsoftener", "Fabric Softener" },
+        { "stainremoval", "Stain Removal" },
+        { "perfume", "Perfume Treatment" },
+        { "delicate", "Delicate Wash" },
+        { "extrafolding", "Extra Folding" },
+        { "hanger", "Hanger Packaging" }
+    };
+
+    // Convert service keys to display names
+    var displayServices = servicesList
+        .Where(s => !string.IsNullOrEmpty(s))
+        .Select(s => serviceNames.ContainsKey(s) ? serviceNames[s] : s)
+        .ToList();
+    var servicesDisplay = string.Join(", ", displayServices);
+
+    // Convert extra keys to display names
+    var displayExtras = extrasList
+        .Where(e => !string.IsNullOrEmpty(e))
+        .Select(e => extraNames.ContainsKey(e) ? extraNames[e] : e)
+        .ToList();
+    var extrasDisplay = string.Join(", ", displayExtras);
+
+    // Calculate values from stored order data (not recalculating)
+    var calculatedServicesTotal = Model.ServicesTotal > 0 ? Model.ServicesTotal : Model.ServiceBasePrice;
+    var weightFee = Model.WeightKg > 5 ? (Model.WeightKg - 5) * 5 : 0;
+    var calculatedExtrasTotal = Model.ExtrasTotal;
+    var calculatedSubtotal = Model.Subtotal > 0 ? Model.Subtotal : (calculatedServicesTotal + weightFee + calculatedExtrasTotal + Model.DeliveryFee);
+    var calculatedDiscount = Model.DiscountAmount;
+    var calculatedTotal = Model.TotalAmount;
+}
+
+@functions {
+    string GetStatusClass(Laundry.Models.OrderStatus status)
+    {
+        return status switch
+        {
+            Laundry.Models.OrderStatus.PaymentConfirmed => "bg-success text-white",
+            Laundry.Models.OrderStatus.PickupAssigned => "bg-primary text-white",
+            Laundry.Models.OrderStatus.DriverEnRoute => "bg-info text-white",
+            Laundry.Models.OrderStatus.PickedUp => "bg-warning text-dark",
+            Laundry.Models.OrderStatus.WashingInProgress => "bg-secondary text-white",
+            Laundry.Models.OrderStatus.OutForDelivery => "bg-info text-white",
+            Laundry.Models.OrderStatus.Delivered => "bg-success text-white",
+            Laundry.Models.OrderStatus.Cancelled => "bg-danger text-white",
+            _ => "bg-secondary text-white"
+        };
+    }
+
+    string GetStatusText(Laundry.Models.OrderStatus status)
+    {
+        return status switch
+        {
+            Laundry.Models.OrderStatus.PaymentConfirmed => "Payment Confirmed",
+            Laundry.Models.OrderStatus.PickupAssigned => "Pickup Assigned",
+            Laundry.Models.OrderStatus.DriverEnRoute => "Driver En Route",
+            Laundry.Models.OrderStatus.PickedUp => "Picked Up",
+            Laundry.Models.OrderStatus.AtLaundry => "At Laundry",
+            Laundry.Models.OrderStatus.WashingInProgress => "Washing in Progress",
+            Laundry.Models.OrderStatus.Completed => "Completed",
+            Laundry.Models.OrderStatus.ReadyForPickup => "Ready for Pickup",
+            Laundry.Models.OrderStatus.OutForDelivery => "Out for Delivery",
+            Laundry.Models.OrderStatus.Delivered => "Delivered",
+            Laundry.Models.OrderStatus.Cancelled => "Cancelled",
+            _ => status.ToString()
+        };
+    }
+}
+
+<div class="container py-5">
+    @if (Model == null)
+    {
+        <div class="alert alert-danger">Order not found.</div>
+    }
+    else
+    {
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="form-container mb-4">
+                    <div class="d-flex justify-content-between align-items-start mb-4">
+                        <div>
+                            <h2 class="fw-bold">Order #@Model.OrderNumber</h2>
+                            <p class="text-muted">Placed on @Model.OrderDate.ToString("dd MMM yyyy, HH:mm")</p>
+                        </div>
+                        <span class="status-badge-large @GetStatusClass(Model.Status)">
+                            @GetStatusText(Model.Status)
+                        </span>
+                    </div>
+
+                    <!-- Order Progress Timeline -->
+                    <div class="timeline mb-5">
+                        <div class="timeline-step @(Model.Status >= Laundry.Models.OrderStatus.PaymentConfirmed ? "completed" : "")">
+                            <div class="timeline-icon"><i class="fas fa-credit-card"></i></div>
+                            <div class="timeline-content">
+                                <h6>Payment Confirmed</h6>
+                                <small class="text-muted">@(Model.Status >= Laundry.Models.OrderStatus.PaymentConfirmed ? Model.OrderDate.ToString("dd MMM") : "Pending")</small>
+                            </div>
+                        </div>
+                        <div class="timeline-step @(Model.Status >= Laundry.Models.OrderStatus.PickupAssigned ? "completed" : "")">
+                            <div class="timeline-icon"><i class="fas fa-truck"></i></div>
+                            <div class="timeline-content">
+                                <h6>Pickup Assigned</h6>
+                                <small class="text-muted">@(Model.Status >= Laundry.Models.OrderStatus.PickupAssigned ? (Model.PickupDate?.ToString("dd MMM") ?? "Completed") : "Pending")</small>
+                            </div>
+                        </div>
+                        <div class="timeline-step @(Model.Status >= Laundry.Models.OrderStatus.PickedUp ? "completed" : "")">
+                            <div class="timeline-icon"><i class="fas fa-box"></i></div>
+                            <div class="timeline-content">
+                                <h6>Picked Up</h6>
+                                <small class="text-muted">@(Model.Status >= Laundry.Models.OrderStatus.PickedUp ? (Model.PickupDate?.ToString("dd MMM") ?? "Completed") : "Pending")</small>
+                            </div>
+                        </div>
+                        <div class="timeline-step @(Model.Status >= Laundry.Models.OrderStatus.WashingInProgress ? "completed" : "")">
+                            <div class="timeline-icon"><i class="fas fa-water"></i></div>
+                            <div class="timeline-content">
+                                <h6>Washing in Progress</h6>
+                                <small class="text-muted">@(Model.Status >= Laundry.Models.OrderStatus.WashingInProgress ? "In Progress" : "Pending")</small>
+                            </div>
+                        </div>
+                        <div class="timeline-step @(Model.Status >= Laundry.Models.OrderStatus.OutForDelivery ? "completed" : "")">
+                            <div class="timeline-icon"><i class="fas fa-shipping-fast"></i></div>
+                            <div class="timeline-content">
+                                <h6>Out for Delivery</h6>
+                                <small class="text-muted">@(Model.Status >= Laundry.Models.OrderStatus.OutForDelivery ? "On the way" : "Pending")</small>
+                            </div>
+                        </div>
+                        <div class="timeline-step @(Model.Status >= Laundry.Models.OrderStatus.Delivered ? "completed" : "")">
+                            <div class="timeline-icon"><i class="fas fa-home"></i></div>
+                            <div class="timeline-content">
+                                <h6>Delivered</h6>
+                                <small class="text-muted">@(Model.Status >= Laundry.Models.OrderStatus.Delivered ? (Model.DeliveryDate?.ToString("dd MMM") ?? "Completed") : "Pending")</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Services List -->
+                    @if (displayServices.Any())
+                    {
+                        <div class="alert alert-light">
+                            <i class="fas fa-tshirt me-2" style="color: var(--teal);"></i>
+                            <strong>Services:</strong> @servicesDisplay
+                        </div>
+                    }
+
+                    <!-- Extras Info -->
+                    @if (displayExtras.Any())
+                    {
+                        <div class="alert alert-light">
+                            <i class="fas fa-plus-circle me-2" style="color: var(--teal);"></i>
+                            <strong>Extras:</strong> @extrasDisplay
+                        </div>
+                    }
+
+                    <!-- Weight Info -->
+                    <div class="alert alert-light">
+                        <i class="fas fa-weight-hanging me-2" style="color: var(--teal);"></i>
+                        <strong>Weight:</strong> @Model.WeightKg kg
+                        @if (weightFee > 0)
+                        {
+                            <small class="text-muted">(Extra R@(weightFee.ToString("0.00")) for weight over 5kg)</small>
+                        }
+                    </div>
+
+                    <!-- Driver Info -->
+                    @if (!string.IsNullOrEmpty(Model.DriverName))
+                    {
+                        <div class="alert alert-info">
+                            <i class="fas fa-truck-fast me-2"></i>
+                            <strong>Driver:</strong> @Model.DriverName |
+                            <strong>Phone:</strong> @Model.DriverPhone
+                            @if (!string.IsNullOrEmpty(Model.CurrentDriverLocation))
+                            {
+                                <br />
+                                <small><i class="fas fa-map-marker-alt me-1"></i>@Model.CurrentDriverLocation</small>
+                            }
+                            @if (Model.EtaMinutes.HasValue)
+                            {
+                                <br />
+                                <small><i class="fas fa-clock me-1"></i>ETA: @Model.EtaMinutes minutes</small>
+                            }
+                        </div>
+                    }
+
+                    <!-- Subscription Savings Info -->
+                    @if (calculatedDiscount > 0 || Model.FreeDeliveryApplied)
+                    {
+                        <div class="alert alert-success">
+                            <i class="fas fa-crown me-2"></i>
+                            <strong>Subscription Savings!</strong>
+                            @if (calculatedDiscount > 0)
+                            {
+                                <span>Saved @calculatedDiscount.ToString("C") with your @Model.PackageTier plan (@(Model.DiscountRateApplied * 100)% off). </span>
+                            }
+                            @if (Model.FreeDeliveryApplied)
+                            {
+                                <span>Free delivery applied (R@(Model.DeliveryFee.ToString("0.00")) saved).</span>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <!-- Order Summary -->
+                <div class="form-container mb-4">
+                    <h5 class="fw-bold mb-3">Order Summary</h5>
+
+                    <!-- Services -->
+                    @if (displayServices.Any())
+                    {
+                        <div class="summary-item">
+                            <span>Services (@displayServices.Count item(s)):</span>
+                            <span class="fw-bold">@calculatedServicesTotal.ToString("C")</span>
+                        </div>
+                    }
+
+                    <!-- Weight Fee -->
+                    @if (weightFee > 0)
+                    {
+                        <div class="summary-item">
+                            <span>Extra Weight Fee (@((Model.WeightKg - 5).ToString("0"))kg @@ R5/kg):</span>
+                            <span>R@(weightFee.ToString("0.00"))</span>
+                        </div>
+                    }
+
+                    <!-- Extras -->
+                    @if (displayExtras.Any())
+                    {
+                        <div class="summary-item">
+                            <span>Extras (@displayExtras.Count item(s)):</span>
+                            <span>@calculatedExtrasTotal.ToString("C")</span>
+                        </div>
+                    }
+
+                    <div class="summary-item">
+                        <span>Packaging:</span>
+                        <span>@Model.PackagingType</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Delivery Method:</span>
+                        <span>@Model.DeliveryMethod</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Detergent:</span>
+                        <span>@Model.DetergentType</span>
+                    </div>
+
+                    <hr />
+
+                    <div class="summary-item">
+                        <span>Subtotal:</span>
+                        <span>@calculatedSubtotal.ToString("C")</span>
+                    </div>
+
+                    <div class="summary-item">
+                        <span>Delivery Fee:</span>
+                        @if (Model.FreeDeliveryApplied)
+                        {
+                            <span class="text-success">R0.00 (Free!)</span>
+                        }
+                        else
+                        {
+                            <span>@Model.DeliveryFee.ToString("C")</span>
+                        }
+                    </div>
+
+                    @if (calculatedDiscount > 0)
+                    {
+                        <div class="summary-item text-success">
+                            <span>@Model.PackageTier Discount (@(Model.DiscountRateApplied * 100)% off):</span>
+                            <span>-@calculatedDiscount.ToString("C")</span>
+                        </div>
+                    }
+
+                    <hr />
+
+                    <div class="summary-item fw-bold">
+                        <span>Total Paid:</span>
+                        <span class="text-primary fs-4">@calculatedTotal.ToString("C")</span>
+                    </div>
+
+                    <div class="summary-item small text-muted mt-2">
+                        <span>Payment Method:</span>
+                        <span>@Model.PaymentMethod</span>
+                    </div>
+
+                    <div class="summary-item small text-muted">
+                        <span>Subscription Plan:</span>
+                        <span>@Model.PackageTier</span>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(Model.PromoCodeUsed))
+                    {
+                        <div class="summary-item small text-muted">
+                            <span>Promo Code:</span>
+                            <span>@Model.PromoCodeUsed</span>
+                        </div>
+                    }
+                </div>
+
+                <!-- Delivery Info -->
+                <div class="form-container">
+                    <h5 class="fw-bold mb-3">Delivery Information</h5>
+                    <div class="mb-3">
+                        <small class="text-muted">Pickup Address</small>
+                        <p class="mb-0">@Model.PickupAddress</p>
+                    </div>
+                    <div>
+                        <small class="text-muted">Delivery Address</small>
+                        <p class="mb-0">@Model.DeliveryAddress</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .timeline {
+        position: relative;
+        padding-left: 30px;
+    }
+
+    .timeline:before {
+        content: '';
+        position: absolute;
+        left: 20px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: #e9ecef;
+    }
+
+    .timeline-step {
+        position: relative;
+        margin-bottom: 30px;
+        display: flex;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .timeline-icon {
+        width: 40px;
+        height: 40px;
+        background: #f8f9fa;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1;
+        transition: all 0.3s ease;
+    }
+
+    .timeline-step.completed .timeline-icon {
+        background: var(--teal);
+        color: white;
+    }
+
+    .timeline-content {
+        flex: 1;
+    }
+
+    .summary-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+    }
+
+    .status-badge-large {
+        padding: 6px 16px;
+        border-radius: 50px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    @@keyframes pulse {
+        0%, 100% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.1);
+        }
+    }
+</style>

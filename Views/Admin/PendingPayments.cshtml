@@ -1,0 +1,73 @@
+﻿@model List<Laundry.Services.PaymentInstruction>
+@{
+    ViewData["Title"] = "Pending EFT Payments";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="admin-payments">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="fw-bold">Pending EFT Payments</h1>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-body p-4">
+            @if (!Model.Any())
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-check-circle fa-4x text-success mb-3"></i>
+                    <h5>No pending EFT payments</h5>
+                    <p class="text-muted">All payments have been confirmed</p>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Order #</th>
+                                <th>Amount</th>
+                                <th>Bank</th>
+                                <th>Reference</th>
+                                <th>Created At</th>
+                                <th>Expires</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var instruction in Model)
+                            {
+                                <tr>
+                                    <td><strong>@instruction.OrderNumber</strong></td>
+                                    <td>@instruction.Amount.ToString("C")</td>
+                                    <td>@instruction.BankName</td>
+                                    <td><code>@instruction.Reference</code></td>
+                                    <td>@instruction.CreatedAt.ToString("dd MMM HH:mm")</td>
+                                    <td>
+                                        @if (instruction.ExpiryDate < DateTime.Now)
+                                        {
+                                            <span class="badge bg-danger">Expired</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning">@((instruction.ExpiryDate.Value - DateTime.Now).Hours)h left</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <form method="post" asp-action="ConfirmEftPayment" style="display:inline;">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="instructionId" value="@instruction.Id" />
+                                            <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Confirm this payment?')">
+                                                <i class="fas fa-check"></i> Confirm
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>

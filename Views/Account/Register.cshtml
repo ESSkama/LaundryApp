@@ -1,0 +1,245 @@
+﻿@model Laundry.Models.ViewModels.RegisterViewModel
+@{
+    ViewData["Title"] = "Create Account - SUDS & SPIN";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <style>
+        :root {
+            --teal: #2A9D8F;
+            --teal-dark: #1E6B61;
+            --deep-teal: #264653;
+            --cream: #F4F1DE;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--cream) 0%, white 100%);
+            min-height: 100vh;
+            padding: 40px 0;
+        }
+
+        .register-container {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .register-card {
+            background: white;
+            border-radius: 32px;
+            padding: 40px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.08);
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+            .logo i {
+                font-size: 3rem;
+                color: var(--teal);
+            }
+
+            .logo h1 {
+                font-size: 1.8rem;
+                font-weight: 700;
+                margin: 12px 0 4px;
+                background: linear-gradient(135deg, var(--teal), var(--teal-dark));
+                -webkit-background-clip: text;
+                background-clip: text;
+                color: transparent;
+            }
+
+        .form-control {
+            border: 2px solid #e9ecef;
+            border-radius: 16px;
+            padding: 12px 16px;
+        }
+
+            .form-control:focus {
+                border-color: var(--teal);
+                box-shadow: 0 0 0 4px rgba(42,157,143,0.1);
+            }
+
+            .form-control.is-valid {
+                border-color: var(--teal);
+                background-image: none;
+            }
+
+            .form-control.is-invalid {
+                border-color: #dc3545;
+            }
+
+        .btn-register {
+            background: linear-gradient(135deg, var(--teal), var(--teal-dark));
+            border: none;
+            padding: 14px;
+            border-radius: 50px;
+            font-weight: 600;
+            width: 100%;
+            color: white;
+            transition: all 0.3s;
+        }
+
+            .btn-register:hover:not(:disabled) {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(42,157,143,0.3);
+            }
+
+            .btn-register:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+            }
+
+        .password-requirements {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            margin-top: 15px;
+        }
+
+            .password-requirements ul {
+                margin: 8px 0 0 20px;
+                padding: 0;
+            }
+
+            .password-requirements li {
+                list-style: none;
+                margin: 5px 0;
+            }
+
+        .invalid-feedback {
+            font-size: 0.8rem;
+        }
+
+        hr {
+            margin: 20px 0;
+        }
+
+        .valid-requirement {
+            color: #2A9D8F;
+        }
+
+        .invalid-requirement {
+            color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="register-container">
+            <div class="register-card">
+                <div class="logo">
+                    <i class="fas fa-tshirt"></i>
+                    <h1>SUDS & SPIN</h1>
+                    <p class="text-muted">Create your free account</p>
+                </div>
+
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show">
+                        @TempData["Error"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+
+                <form id="registerForm" method="post" asp-action="Register">
+                    @Html.AntiForgeryToken()
+
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                    <div class="row">
+                        <div class="col-12 mb-3">
+                            <label asp-for="FullName" class="form-label">Full Name</label>
+                            <input asp-for="FullName" class="form-control" placeholder="John Doe" />
+                            <span asp-validation-for="FullName" class="invalid-feedback"></span>
+                            <small class="text-muted">Letters and spaces only</small>
+                        </div>
+
+                        <div class="col-12 mb-3">
+                            <label asp-for="Email" class="form-label">Email Address</label>
+                            <input asp-for="Email" type="email" class="form-control" placeholder="hello@sudsandspin.com" />
+                            <span asp-validation-for="Email" class="invalid-feedback"></span>
+                        </div>
+
+                        <div class="col-12 mb-3">
+                            <label asp-for="PhoneNumber" class="form-label">Phone Number</label>
+                            <input asp-for="PhoneNumber" class="form-control" placeholder="0412345678" />
+                            <span asp-validation-for="PhoneNumber" class="invalid-feedback"></span>
+                            <small class="text-muted">Enter 10 digits only (e.g., 0412345678)</small>
+                        </div>
+
+                        <div class="col-12 mb-3">
+                            <label asp-for="Address" class="form-label">Address</label>
+                            <input asp-for="Address" class="form-control" placeholder="Street address" />
+                            <span asp-validation-for="Address" class="invalid-feedback"></span>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="City" class="form-label">City</label>
+                            <input asp-for="City" class="form-control" placeholder="Port Elizabeth" />
+                            <span asp-validation-for="City" class="invalid-feedback"></span>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="PostalCode" class="form-label">Postal Code</label>
+                            <input asp-for="PostalCode" class="form-control" placeholder="6001" />
+                            <span asp-validation-for="PostalCode" class="invalid-feedback"></span>
+                        </div>
+
+                        <!-- PASSWORD FIELDS - ADD THESE BACK -->
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Password" class="form-label">Password</label>
+                            <input asp-for="Password" type="password" class="form-control" placeholder="Create password" />
+                            <span asp-validation-for="Password" class="invalid-feedback"></span>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="ConfirmPassword" class="form-label">Confirm Password</label>
+                            <input asp-for="ConfirmPassword" type="password" class="form-control" placeholder="Confirm password" />
+                            <span asp-validation-for="ConfirmPassword" class="invalid-feedback"></span>
+                        </div>
+                    </div> <!-- Close the row div -->
+
+                    <div class="password-requirements mb-3">
+                        <small>Password must have:</small>
+                        <ul>
+                            <li id="reqLength"><i class="fas fa-times-circle me-1"></i>At least 8 characters</li>
+                            <li id="reqUppercase"><i class="fas fa-times-circle me-1"></i>One uppercase letter (A-Z)</li>
+                            <li id="reqLowercase"><i class="fas fa-times-circle me-1"></i>One lowercase letter (a-z)</li>
+                            <li id="reqNumber"><i class="fas fa-times-circle me-1"></i>One number (0-9)</li>
+                            <li id="reqSpecial"><i class="fas fa-times-circle me-1"></i>One special character (&#64; &#36; ! % * ? &amp;)</li>
+                        </ul>
+                    </div>
+
+                    <button type="submit" id="submitBtn" class="btn-register" disabled>Create Account</button>
+                </form>
+
+                <hr class="my-4">
+
+                <div class="text-center">
+                    <p class="mb-0">Already have an account? <a asp-action="Login" style="color: var(--teal); font-weight: 600; text-decoration: none;">Sign In</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/3.2.12/jquery.validate.unobtrusive.min.js"></script>
+    <script src="~/js/register-validation.js"></script>
+</body>
+</html>

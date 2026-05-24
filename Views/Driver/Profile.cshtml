@@ -1,0 +1,152 @@
+﻿@model Laundry.Models.User
+@{
+    ViewData["Title"] = "Account Settings";
+    Layout = "~/Views/Shared/_DriverLayout.cshtml";
+    
+    // Splitting full name safely for the reference input layout structure
+    var nameParts = (Model.FullName ?? "Courier Profile").Split(' ', 2);
+    var firstName = nameParts[0];
+    var lastName = nameParts.Length > 1 ? nameParts[1] : "";
+}
+
+<div class="container-fluid px-0 py-2" style="max-width: 1000px;">
+    
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success border-0 shadow-sm rounded-3 mb-4 alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2 text-success"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger border-0 shadow-sm rounded-3 mb-4 alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2 text-danger"></i> @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="card border-0 bg-white rounded-4 shadow-sm overflow-hidden mb-5">
+        <form asp-action="UpdateProfile" method="post">
+            @Html.AntiForgeryToken()
+            
+            <div class="p-4 border-bottom border-light">
+                <h3 class="fw-bold text-dark mb-4">Account</h3>
+                
+                <div class="d-flex align-items-center gap-4 py-2">
+                    <div class="position-relative">
+                        <div class="bg-light rounded-circle d-flex align-items-center justify-content-center border border-2 border-white shadow-sm" style="width: 80px; height: 80px; overflow: hidden; background-color: #f3f4f6 !important;">
+                            <i class="fas fa-user text-secondary fa-2x mt-1"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold text-dark mb-2">Profile Picture</h6>
+                        <div class="d-flex gap-2 mb-2">
+                            <button type="button" class="btn btn-sm text-white px-3 rounded-3 shadow-sm transition-all" style="background-color: var(--teal); border: none;" onclick="alert('Profile image uploading is integrated with central employee verification assets.')">
+                                <i class="fas fa-upload me-1.5 small"></i> Upload Image
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary px-3 rounded-3 bg-white" onclick="alert('Resetting to asset default placeholder.')">
+                                Remove
+                            </button>
+                        </div>
+                        <small class="text-muted d-block" style="font-size: 0.75rem;">We support PNGs, JPEGs and GIFs under 10MB</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-4 border-bottom border-light bg-white">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-medium text-secondary mb-1.5">First Name</label>
+                        <input type="text" name="firstName" class="form-control custom-profile-input py-2.5 px-3" value="@firstName" required />
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label class="form-label small fw-medium text-secondary mb-1.5">Last Name</label>
+                        <input type="text" name="lastName" class="form-control custom-profile-input py-2.5 px-3" value="@lastName" />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label small fw-medium text-secondary mb-1.5">Mobile Phone Numbers</label>
+                        <input type="tel" name="phoneNumber" class="form-control custom-profile-input py-2.5 px-3" value="@Model.PhoneNumber" required />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label small fw-medium text-secondary mb-1.5">Vehicle Registration Plate</label>
+                        <input type="text" name="vehicleRegistrationPlate" class="form-control custom-profile-input py-2.5 px-3 text-uppercase fw-bold" value="@Model.VehicleRegistrationPlate" placeholder="e.g. EC 123-456" />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label small fw-medium text-secondary mb-1.5">Username Handle</label>
+                        <input type="text" name="systemUsername" class="form-control custom-profile-input py-2.5 px-3 font-monospace" value="@Model.SystemUsername" />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label small fw-medium text-secondary mb-1.5">Email</label>
+                        <div class="d-flex gap-2">
+                            <input type="email" class="form-control custom-profile-input py-2.5 px-3 bg-light text-muted flex-grow-1" value="@Model.Email" readonly style="cursor: not-allowed;" />
+                            <button type="button" class="btn btn-sm btn-outline-secondary px-3 rounded-3 bg-white border border-secondary border-opacity-20 small fw-medium" style="white-space: nowrap; font-size: 0.82rem;" onclick="alert('Corporate profile routing credentials must be adjusted via the administrative desk.')">
+                                Edit Email
+                            </button>
+                        </div>
+                        <small class="text-muted d-block mt-1.5" style="font-size: 0.75rem;">Used to log in to your fleet account</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-4 border-bottom border-light bg-white">
+                <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+                    <div>
+                        <h6 class="fw-bold text-dark mb-1">Password</h6>
+                        <p class="text-muted small mb-0" style="font-size: 0.8rem;">Log in with your password instead of using temporary login authorization access tokens.</p>
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-sm btn-outline-secondary px-3 py-2 bg-white border border-secondary border-opacity-20 fw-semibold" style="font-size: 0.8rem; border-radius: 8px;" onclick="alert('A secure credential reset token link has been broadcasted to your recovery account window.')">
+                            Change Password
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-4 bg-light bg-opacity-40 d-flex justify-content-end align-items-center gap-2 border-top border-light">
+                <a href="/Driver/Index" class="btn btn-sm btn-light border bg-white text-secondary fw-semibold px-4 py-2.5 transition-all" style="border-radius: 10px; font-size: 0.85rem;">
+                    Cancel
+                </a>
+                <button type="submit" class="btn btn-sm text-white px-4 py-2.5 fw-semibold shadow-sm transition-all btn-save-custom" style="background-color: var(--teal); border: none; border-radius: 10px; font-size: 0.85rem;">
+                    Save
+                </button>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<style>
+    /* Premium input fields matching your mock view precisely */
+    .custom-profile-input {
+        background-color: #ffffff !important;
+        border: 1px solid rgba(0,0,0,0.08) !important;
+        border-radius: 10px !important;
+        color: var(--text-dark) !important;
+        font-size: 0.9rem !important;
+        font-weight: 400 !important;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+    }
+
+    .custom-profile-input:focus {
+        border-color: var(--teal) !important;
+        box-shadow: 0 0 0 3px rgba(42, 157, 143, 0.1) !important;
+        outline: none !important;
+    }
+
+    /* Interactive UI transitions */
+    .transition-all {
+        transition: all 0.2s ease-in-out !important;
+    }
+
+    .btn-save-custom:hover {
+        background-color: var(--teal-dark) !important;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(42, 157, 143, 0.2) !important;
+    }
+</style>

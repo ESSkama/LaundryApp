@@ -1,0 +1,145 @@
+﻿@model List<Laundry.Models.Order>
+@{
+    ViewData["Title"] = "My Orders - SUDS & SPIN";
+    Layout = "~/Views/Shared/_CustomerLayout.cshtml";
+}
+
+<div class="container py-5">
+    <div class="row">
+        <div class="col-12">
+            <div class="form-container">
+                <div class="text-center mb-4">
+                    <i class="fas fa-clipboard-list fa-3x" style="color: var(--teal);"></i>
+                    <h2 class="mt-3">My Orders</h2>
+                    <p class="text-muted">View all your laundry orders</p>
+                </div>
+
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success">@TempData["Success"]</div>
+                }
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger">@TempData["Error"]</div>
+                }
+
+                @if (!Model.Any())
+                {
+                    <div class="text-center py-5">
+                        <i class="fas fa-box-open fa-4x text-muted mb-3"></i>
+                        <h4 class="text-muted">No orders yet</h4>
+                        <p class="text-muted">You haven't placed any orders yet.</p>
+                        <a href="/Order/Create" class="btn-primary-custom mt-3">
+                            <i class="fas fa-plus-circle"></i> Place Your First Order
+                        </a>
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Order #</th>
+                                    <th>Date</th>
+                                    <th>Service</th>
+                                    <th>Package</th>
+                                    <th>Total</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var order in Model)
+                                {
+                                    <tr>
+                                        <td>
+                                            <strong>#@order.OrderNumber</strong>
+                                        </td>
+                                        <td>@order.OrderDate.ToString("dd MMM yyyy")</td>
+                                        <td>@order.ServiceType</td>
+                                        <td>
+                                            <span class="badge bg-info">@order.PackageTier</span>
+                                        </td>
+                                        <td>@order.TotalAmount.ToString("C")</td>
+                                        <td>
+                                            @{
+                                                var statusClass = order.Status switch
+                                                {
+                                                    Laundry.Models.OrderStatus.PaymentConfirmed => "bg-success",
+                                                    Laundry.Models.OrderStatus.PickupAssigned => "bg-primary",
+                                                    Laundry.Models.OrderStatus.DriverEnRoute => "bg-info",
+                                                    Laundry.Models.OrderStatus.PickedUp => "bg-warning",
+                                                    Laundry.Models.OrderStatus.WashingInProgress => "bg-secondary",
+                                                    Laundry.Models.OrderStatus.OutForDelivery => "bg-info",
+                                                    Laundry.Models.OrderStatus.Delivered => "bg-success",
+                                                    Laundry.Models.OrderStatus.Cancelled => "bg-danger",
+                                                    _ => "bg-secondary"
+                                                };
+                                            }
+                                            <span class="badge @statusClass">@order.Status</span>
+                                        </td>
+                                        <td>
+                                            <a href="/Order/Details/@order.OrderId" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i> View
+                                            </a>
+                                            <a href="/Order/Track/@order.OrderId" class="btn btn-sm btn-outline-info">
+                                                <i class="fas fa-map-marker-alt"></i> Track
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-container {
+        background: white;
+        border-radius: 24px;
+        padding: 30px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+    }
+
+    .table th {
+        font-weight: 600;
+        border-bottom: 2px solid var(--teal);
+    }
+
+    .table td {
+        vertical-align: middle;
+    }
+
+    .badge {
+        padding: 5px 10px;
+        border-radius: 50px;
+        font-weight: 500;
+    }
+
+    .btn-outline-primary {
+        border-color: var(--teal);
+        color: var(--teal);
+    }
+
+        .btn-outline-primary:hover {
+            background: var(--teal);
+            border-color: var(--teal);
+            color: white;
+        }
+
+    .btn-outline-info {
+        border-color: var(--soft-blue);
+        color: var(--soft-blue);
+    }
+
+        .btn-outline-info:hover {
+            background: var(--soft-blue);
+            border-color: var(--soft-blue);
+            color: white;
+        }
+</style>
